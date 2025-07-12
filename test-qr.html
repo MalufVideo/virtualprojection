@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>QR Code Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js" onerror="console.error('Failed to load QRCode library')"></script>
+</head>
+<body>
+    <h1>QR Code Test</h1>
+    <div id="qr-container" style="margin: 20px;"></div>
+    <button onclick="testQR()">Generate QR</button>
+    
+    <script>
+        function testQR() {
+            console.log('Testing QR generation...');
+            console.log('QRCode available:', typeof QRCode);
+            console.log('QRious available:', typeof QRious);
+            
+            const container = document.getElementById('qr-container');
+            const testData = 'VP-12345|Test User';
+            
+            // Try QRious first (simpler API)
+            if (typeof QRious !== 'undefined') {
+                console.log('Using QRious library');
+                container.innerHTML = '<p>Generating QR with QRious...</p>';
+                
+                try {
+                    const canvas = document.createElement('canvas');
+                    const qr = new QRious({
+                        element: canvas,
+                        value: testData,
+                        size: 200,
+                        level: 'M'
+                    });
+                    
+                    container.innerHTML = '';
+                    container.appendChild(canvas);
+                    const p = document.createElement('p');
+                    p.textContent = 'QR Code generated with QRious!';
+                    p.style.color = 'green';
+                    container.appendChild(p);
+                    console.log('QR generated successfully with QRious');
+                    return;
+                } catch (error) {
+                    console.error('QRious Error:', error);
+                    container.innerHTML = `<p style="color: orange;">QRious failed: ${error.message}</p>`;
+                }
+            }
+            
+            // Try QRCode as fallback
+            if (typeof QRCode !== 'undefined') {
+                console.log('Using QRCode library');
+                container.innerHTML = '<p>Generating QR with QRCode...</p>';
+                
+                QRCode.toCanvas(testData, {
+                    width: 200,
+                    height: 200,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, function (error, canvas) {
+                    if (error) {
+                        console.error('QRCode Error:', error);
+                        container.innerHTML = `<p style="color: red;">QRCode Error: ${error.message}</p>`;
+                    } else {
+                        console.log('QR generated successfully with QRCode');
+                        container.innerHTML = '';
+                        container.appendChild(canvas);
+                        const p = document.createElement('p');
+                        p.textContent = 'QR Code generated with QRCode!';
+                        p.style.color = 'green';
+                        container.appendChild(p);
+                    }
+                });
+                return;
+            }
+            
+            // No library available
+            container.innerHTML = '<p style="color: red;">No QR libraries loaded!</p>';
+        }
+        
+        // Auto test on load
+        window.addEventListener('load', function() {
+            console.log('Page loaded');
+            setTimeout(testQR, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner de Entrada | Virtual Projection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .scanner-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        #qr-reader {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .status-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            animation: pulseSuccess 1s ease-in-out;
+        }
+        
+        .status-error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            animation: pulseError 1s ease-in-out;
+        }
+        
+        .status-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            animation: pulseWarning 1s ease-in-out;
+        }
+        
+        @keyframes pulseSuccess {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        @keyframes pulseError {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        @keyframes pulseWarning {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        .welcome-message {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 2rem;
+            margin: 1rem 0;
+            border-radius: 16px;
+        }
+        
+        .attendee-info {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <!-- Header -->
+    <header class="py-6 border-b border-white/10">
+        <div class="container mx-auto px-6 text-center">
+            <img src="img/0513_ON AV EXPANDED_WHT.png" alt="ON AV" class="h-16 object-contain mx-auto mb-4">
+            <h1 class="text-2xl font-bold">Scanner de Entrada</h1>
+            <p class="text-gray-400 text-sm">Virtual Projection Demo</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        <!-- Scanner Section -->
+        <div class="scanner-container mb-8">
+            <div id="qr-reader" class="bg-gray-800 rounded-2xl overflow-hidden"></div>
+            
+            <!-- Scanner Controls -->
+            <div class="mt-4 flex justify-center space-x-4">
+                <button id="start-scanner" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-play mr-2"></i> Iniciar Scanner
+                </button>
+                <button id="stop-scanner" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors" style="display: none;">
+                    <i class="fas fa-stop mr-2"></i> Parar Scanner
+                </button>
+            </div>
+        </div>
+
+        <!-- Status Display -->
+        <div id="status-display" class="hidden">
+            <!-- Welcome Message (appears when valid QR is scanned) -->
+            <div id="welcome-message" class="welcome-message hidden">
+                <div class="text-4xl mb-4">🎉</div>
+                <div>Bem-vindo(a) ao show,</div>
+                <div id="attendee-name" class="text-yellow-300"></div>
+            </div>
+            
+            <!-- Attendee Details -->
+            <div id="attendee-details" class="attendee-info hidden">
+                <h3 class="text-xl font-bold mb-4 text-center">
+                    <i class="fas fa-user-check mr-2 text-green-400"></i> Detalhes do Participante
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Nome:</span>
+                        <span id="detail-name" class="font-medium"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">E-mail:</span>
+                        <span id="detail-email" class="font-medium text-sm"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">ID:</span>
+                        <span id="detail-id" class="font-mono text-sm"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Status:</span>
+                        <span id="detail-status" class="font-medium"></span>
+                    </div>
+                </div>
+                
+                <!-- Check-in Button -->
+                <button id="checkin-btn" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-check mr-2"></i> Confirmar Entrada
+                </button>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="error-message" class="hidden p-6 rounded-2xl text-center">
+                <div class="text-4xl mb-4">❌</div>
+                <h3 class="text-xl font-bold mb-2">QR Code Inválido</h3>
+                <p id="error-text" class="text-gray-300"></p>
+                <button onclick="clearStatus()" class="mt-4 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg">
+                    Escanear Novamente
+                </button>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="mt-8 p-6 bg-gray-900 rounded-2xl">
+            <h3 class="text-lg font-bold mb-4">
+                <i class="fas fa-info-circle mr-2 text-blue-400"></i> Instruções
+            </h3>
+            <ul class="space-y-2 text-gray-300">
+                <li>• Clique em "Iniciar Scanner" para ativar a câmera</li>
+                <li>• Posicione o QR code do participante na tela</li>
+                <li>• O sistema validará automaticamente o código</li>
+                <li>• Confirme a entrada do participante</li>
+                <li>• Diga: "Bem-vindo(a) ao show, [Nome]!"</li>
+            </ul>
+        </div>
+
+        <!-- Statistics -->
+        <div id="stats" class="mt-8 grid grid-cols-2 gap-4">
+            <div class="bg-green-900/30 p-4 rounded-xl text-center border border-green-500/30">
+                <div class="text-2xl font-bold text-green-400" id="checked-in-count">0</div>
+                <div class="text-sm text-gray-400">Check-ins</div>
+            </div>
+            <div class="bg-blue-900/30 p-4 rounded-xl text-center border border-blue-500/30">
+                <div class="text-2xl font-bold text-blue-400" id="total-count">0</div>
+                <div class="text-sm text-gray-400">Total Inscritos</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let html5QrcodeScanner = null;
+        let currentAttendee = null;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            
+            document.getElementById('start-scanner').addEventListener('click', startScanner);
+            document.getElementById('stop-scanner').addEventListener('click', stopScanner);
+            document.getElementById('checkin-btn').addEventListener('click', confirmCheckIn);
+        });
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('http://localhost:3000/attendees');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const attendees = data.attendees;
+                    const checkedInCount = attendees.filter(a => a.checked_in).length;
+                    
+                    document.getElementById('total-count').textContent = attendees.length;
+                    document.getElementById('checked-in-count').textContent = checkedInCount;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Start QR Scanner
+        function startScanner() {
+            const config = { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+                showTorchButtonIfSupported: true,
+                defaultZoomValueIfSupported: 2,
+                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+            };
+
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "qr-reader", config, false
+            );
+
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            
+            document.getElementById('start-scanner').style.display = 'none';
+            document.getElementById('stop-scanner').style.display = 'inline-block';
+            clearStatus();
+        }
+
+        // Stop QR Scanner
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
+            }
+            
+            document.getElementById('start-scanner').style.display = 'inline-block';
+            document.getElementById('stop-scanner').style.display = 'none';
+            clearStatus();
+        }
+
+        // Handle successful QR scan
+        async function onScanSuccess(decodedText, decodedResult) {
+            console.log('QR Scanned:', decodedText);
+            
+            // Stop scanning temporarily
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.pause(true);
+            }
+            
+            // Validate QR code
+            await validateQRCode(decodedText);
+        }
+
+        // Handle scan failure
+        function onScanFailure(error) {
+            // Ignore scan failures (camera still scanning)
+        }
+
+        // Validate QR Code with server
+        async function validateQRCode(qrData) {
+            try {
+                const response = await fetch('http://localhost:3000/validate-qr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ qrData: qrData })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showValidQR(result.attendee);
+                } else {
+                    showInvalidQR(result.error || 'QR Code não encontrado');
+                }
+            } catch (error) {
+                console.error('Validation error:', error);
+                showInvalidQR('Erro de conexão com o servidor');
+            }
+        }
+
+        // Show valid QR result
+        function showValidQR(attendee) {
+            currentAttendee = attendee;
+            
+            const statusDisplay = document.getElementById('status-display');
+            const welcomeMessage = document.getElementById('welcome-message');
+            const attendeeDetails = document.getElementById('attendee-details');
+            
+            // Show welcome message
+            document.getElementById('attendee-name').textContent = attendee.name;
+            
+            // Show attendee details
+            document.getElementById('detail-name').textContent = attendee.name;
+            document.getElementById('detail-email').textContent = attendee.email;
+            document.getElementById('detail-id').textContent = attendee.id;
+            
+            const statusElement = document.getElementById('detail-status');
+            const checkinBtn = document.getElementById('checkin-btn');
+            
+            if (attendee.checked_in) {
+                statusElement.innerHTML = '<span class="text-yellow-400"><i class="fas fa-clock mr-1"></i> Já fez check-in</span>';
+                checkinBtn.innerHTML = '<i class="fas fa-redo mr-2"></i> Check-in Novamente';
+                checkinBtn.className = 'w-full mt-6 bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-6 rounded-lg font-medium transition-colors';
+            } else {
+                statusElement.innerHTML = '<span class="text-green-400"><i class="fas fa-check-circle mr-1"></i> Válido</span>';
+                checkinBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Confirmar Entrada';
+                checkinBtn.className = 'w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors';
+            }
+            
+            // Set status styling
+            statusDisplay.className = 'status-success rounded-2xl p-4';
+            
+            // Show elements
+            statusDisplay.classList.remove('hidden');
+            welcomeMessage.classList.remove('hidden');
+            attendeeDetails.classList.remove('hidden');
+            document.getElementById('error-message').classList.add('hidden');
+            
+            // Auto-resume scanning after 10 seconds
+            setTimeout(() => {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.resume();
+                    clearStatus();
+                }
+            }, 10000);
+        }
+
+        // Show invalid QR result
+        function showInvalidQR(errorMessage) {
+            const statusDisplay = document.getElementById('status-display');
+            const errorElement = document.getElementById('error-message');
+            
+            document.getElementById('error-text').textContent = errorMessage;
+            
+            // Set status styling
+            statusDisplay.className = 'status-error rounded-2xl p-4';
+            
+            // Show error
+            statusDisplay.classList.remove('hidden');
+            errorElement.classList.remove('hidden');
+            document.getElementById('welcome-message').classList.add('hidden');
+            document.getElementById('attendee-details').classList.add('hidden');
+            
+            // Auto-resume scanning after 5 seconds
+            setTimeout(() => {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.resume();
+                    clearStatus();
+                }
+            }, 5000);
+        }
+
+        // Confirm check-in
+        async function confirmCheckIn() {
+            if (!currentAttendee) return;
+            
+            try {
+                const response = await fetch('http://localhost:3000/checkin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        attendeeId: currentAttendee.id,
+                        email: currentAttendee.email 
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update button to show success
+                    const checkinBtn = document.getElementById('checkin-btn');
+                    checkinBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Check-in Confirmado!';
+                    checkinBtn.className = 'w-full mt-6 bg-green-600 text-white py-3 px-6 rounded-lg font-medium';
+                    checkinBtn.disabled = true;
+                    
+                    // Update stats
+                    loadStats();
+                    
+                    // Auto-resume after 3 seconds
+                    setTimeout(() => {
+                        if (html5QrcodeScanner) {
+                            html5QrcodeScanner.resume();
+                            clearStatus();
+                        }
+                    }, 3000);
+                } else {
+                    alert('Erro ao confirmar check-in: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Check-in error:', error);
+                alert('Erro de conexão ao confirmar check-in');
+            }
+        }
+
+        // Clear status display
+        function clearStatus() {
+            document.getElementById('status-display').classList.add('hidden');
+            document.getElementById('status-display').className = 'hidden';
+            currentAttendee = null;
+        }
+    </script>
+</body>
+</html>

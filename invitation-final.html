@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Projection | Convite Exclusivo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .invitation-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.9) 100%), url('img/invite_bg.png');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .title {
+            font-size: 5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 0;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+        
+        .subtitle-box {
+            background-color: rgba(0,0,0,0.8);
+            padding: 15px 30px;
+            margin: 20px 0 40px;
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            border-top: 1px solid #6366f1;
+            border-bottom: 1px solid #6366f1;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            line-height: 1.5;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        
+        .logos {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+        
+        .logo {
+            height: 40px;
+            opacity: 0.9;
+        }
+        
+        .invitation-text {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .date-time {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+        
+        .location {
+            position: absolute;
+            bottom: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .location img {
+            height: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .location-text {
+            font-size: 1rem;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .colorful-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(90deg, 
+                #ff0080, #ff8c00, #ffed00, #00ff80, 
+                #00bfff, #8000ff, #ff0080);
+            background-size: 1000% 100%;
+            animation: wave-animation 15s linear infinite;
+            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path><path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path></svg>');
+            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path><path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path></svg>');
+            mask-size: 100% 100%;
+            -webkit-mask-size: 100% 100%;
+        }
+        
+        @keyframes wave-animation {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        
+        @media (max-width: 768px) {
+            .title {
+                font-size: 3.5rem;
+            }
+            
+            .subtitle {
+                font-size: 0.8rem;
+            }
+            
+            .logos {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 20px;
+            }
+            
+            .logo {
+                height: 30px;
+            }
+            
+            .date-time {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invitation-container">
+        <h1 class="title">Virtual Projection</h1>
+        
+        <div class="subtitle-box">
+            <p class="subtitle">LANÇAMENTO NO BRASIL DA MAIS AVANÇADA TECNOLOGIA DE<br>
+            PRODUÇÃO VIRTUAL COM HIGH SPEED E FRAME REMAPING</p>
+        </div>
+        
+        <div class="logos">
+            <img src="img/Christie-Blue-Logo.png" alt="Christie" class="logo">
+            <img src="img/SHOTonRED_Small_transparent.png" alt="RED" class="logo">
+            <img src="img/0513_ON AV EXPANDED_WHT.png" alt="KinoFlo" class="logo">
+            <img src="img/DISGUISE_Logo23_CMYK_Portrait_white.png" alt="Disguise" class="logo">
+        </div>
+        
+        <p class="invitation-text">você é nosso convidado</p>
+        <p class="date-time">31/07 – 16H</p>
+        
+        <div class="location">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNDAgNjAiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xMjAgMTBjLTIyLjYgMC00MSAxOC40LTQxIDQxczE4LjQgNDEgNDEgNDEgNDEtMTguNCA0MS00MS0xOC40LTQxLTQxLTQxem0wIDc0Yy0xOC4yIDAtMzMtMTQuOC0zMy0zM3MxNC44LTMzIDMzLTMzIDMzIDE0LjggMzMgMzMtMTQuOCAzMy0zMyAzM3oiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMTIwIDI0Yy0xNC45IDAtMjcgMTIuMS0yNyAyN3MxMi4xIDI3IDI3IDI3IDI3LTEyLjEgMjctMjctMTIuMS0yNy0yNy0yN3ptMCA0NmMtMTAuNSAwLTE5LTguNS0xOS0xOXM4LjUtMTkgMTktMTkgMTkgOC41IDE5IDE5LTguNSAxOS0xOSAxOXoiLz48L3N2Zz4=" alt="Location Icon">
+            <p class="location-text">
+                R. Plácido Vieira, 43<br>
+                Santo Amaro, São Paulo
+            </p>
+        </div>
+        
+        <div class="colorful-wave"></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obrigado! | Virtual Projection Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .neon-text {
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #ff006e);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: neonFlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes neonFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-3d {
+            transform-style: preserve-3d;
+            transition: all 0.4s ease;
+        }
+        
+        .card-3d:hover {
+            transform: rotateY(5deg) rotateX(5deg) translateZ(10px);
+        }
+        
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulseGlow {
+            from { box-shadow: 0 0 20px rgba(131, 56, 236, 0.5); }
+            to { box-shadow: 0 0 40px rgba(255, 0, 110, 0.8), 0 0 60px rgba(58, 134, 255, 0.6); }
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen" style="background-image: url('img/ComfyUI_00077_.png'); background-size: cover; background-position: center; background-attachment: fixed; background-color: black;">
+    <!-- Header with Logo -->
+    <header class="py-6">
+        <div class="container mx-auto px-6 text-center">
+            <img src="img/0513_ON AV EXPANDED_WHT.png" alt="ON AV" class="h-24 md:h-32 object-contain mx-auto">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pb-12">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <!-- Thank You Message -->
+            <div class="text-center mb-16">
+                <h1 class="text-5xl md:text-6xl font-bold pb-8 neon-text">
+                    Muito Obrigado!
+                </h1>
+                <div class="glass rounded-3xl p-8 md:p-12 card-3d mb-12">
+                    <p class="text-xl md:text-2xl text-gray-300 leading-relaxed mb-6">
+                        Estamos <span class="text-white font-semibold">super empolgados</span> com essa nova forma revolucionária de fazer produção virtual!
+                    </p>
+                    <p class="text-lg md:text-xl text-gray-300 leading-relaxed mb-6">
+                        Ficamos muito felizes que você esteja vindo ao nosso evento para que possamos mostrar pessoalmente 
+                        <span class="text-white font-semibold">por que essa tecnologia é tão incrível</span> e como ela vai transformar 
+                        a indústria audiovisual no Brasil.
+                    </p>
+                    <p class="text-lg text-gray-400">
+                        Prepare-se para uma experiência única que vai revolucionar sua forma de pensar sobre produção virtual!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                <!-- Add to Calendar -->
+                <div class="glass rounded-3xl p-6 card-3d text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-calendar-plus text-4xl text-blue-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Adicionar à Agenda</h3>
+                    <p class="text-gray-300 text-sm mb-6">Não esqueça do evento! Adicione automaticamente à sua agenda do Google.</p>
+                    <button id="addToCalendar" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">
+                        <i class="fab fa-google mr-2"></i> Google Agenda
+                    </button>
+                </div>
+
+                <!-- QR Code -->
+                <div class="glass rounded-3xl p-6 card-3d text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-qrcode text-4xl text-purple-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Seu QR Code</h3>
+                    <p class="text-gray-300 text-sm mb-4">Apresente este código na entrada do evento.</p>
+                    <div id="qrcode" class="bg-white p-4 rounded-lg mx-auto mb-4" style="width: fit-content;"></div>
+                    <p id="attendeeName" class="text-sm text-gray-400 font-medium"></p>
+                </div>
+
+                <!-- Quiz -->
+                <div class="glass rounded-3xl p-6 card-3d text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-question-circle text-4xl text-pink-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Teste Seus Conhecimentos</h3>
+                    <p class="text-gray-300 text-sm mb-6">Descubra o quanto você já sabe sobre Virtual Projection!</p>
+                    <button id="startQuiz" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300">
+                        <i class="fas fa-play mr-2"></i> Começar Quiz
+                    </button>
+                </div>
+            </div>
+
+            <!-- Event Details Reminder -->
+            <div class="glass rounded-3xl p-8 card-3d text-center mb-12">
+                <h3 class="text-2xl font-bold mb-6 neon-text">Detalhes do Evento</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <i class="fas fa-calendar-alt text-2xl text-pink-400 mb-2"></i>
+                        <h4 class="font-semibold">Data e Hora</h4>
+                        <p class="text-gray-300">26 de agosto, às 16h</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-map-marker-alt text-2xl text-purple-400 mb-2"></i>
+                        <h4 class="font-semibold">Local</h4>
+                        <p class="text-gray-300">R. Plácido Vieira, 43<br>Santo Amaro, São Paulo</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-envelope text-2xl text-blue-400 mb-2"></i>
+                        <h4 class="font-semibold">Confirmação</h4>
+                        <p class="text-gray-300">Convite enviado para<br>seu e-mail</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Map -->
+            <div class="glass rounded-3xl p-8 card-3d">
+                <h3 class="text-2xl font-bold mb-6 neon-text text-center">Como Chegar</h3>
+                
+                <!-- Google Maps Embed -->
+                <div class="mb-6">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3654.777217504149!2d-46.71483062391177!3d-23.648148164787795!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce57a88c0fe1e7%3A0x3af4c1423eac2796!2sOn%20Proje%C3%A7%C3%B5es%20I%20Tecnologias%20Audiovisuais%20(SP)!5e0!3m2!1spt-BR!2sbr!4v1752263386854!5m2!1spt-BR!2sbr" 
+                           width="100%" 
+                           height="400" 
+                           style="border:0; border-radius: 12px;" 
+                           allowfullscreen="" 
+                           loading="lazy" 
+                           referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+                
+                <!-- Uber Button -->
+                <div class="text-center">
+                    <a href="https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=R.%20Pl%C3%A1cido%20Vieira,%2043%20-%20Santo%20Amaro,%20S%C3%A3o%20Paulo%20-%20SP,%20Brazil&dropoff[latitude]=-23.648148164787795&dropoff[longitude]=-46.71483062391177" 
+                       target="_blank"
+                       class="inline-flex items-center px-8 py-4 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors duration-300 text-lg">
+                        <svg class="w-6 h-6 mr-3" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zm0 2c5.514 0 10 4.486 10 10s-4.486 10-10 10S2 17.514 2 12 6.486 2 12 2z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Chamar Uber para o Local
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 border-t border-white/10">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-500">&copy; 2025 On + Avdesign. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Global flag to prevent multiple QR generations
+        let qrGenerated = false;
+
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Prevent multiple executions
+            if (qrGenerated) {
+                console.log('QR already generated, skipping...');
+                return;
+            }
+
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const userName = urlParams.get('nome') || 'Participante';
+            const userEmail = urlParams.get('email') || '';
+
+            console.log('User data:', { userName, userEmail });
+
+            // Display user name
+            const nameElement = document.getElementById('attendeeName');
+            if (nameElement) {
+                nameElement.textContent = userName;
+            }
+
+            // Only generate QR if we have valid user data and haven't generated one yet
+            if (userName && userName !== 'Participante' && userEmail && !qrGenerated) {
+                qrGenerated = true;
+                // Use client-side generation directly for reliability
+                generateClientSideQR(userName);
+            } else {
+                const qrContainer = document.getElementById('qrcode');
+                if (qrContainer && !qrGenerated) {
+                    qrContainer.innerHTML = '<p class="text-red-400 text-sm">Dados de usuário não encontrados</p>';
+                }
+            }
+        });
+
+        // Generate QR Code function (called only once)
+        function generateQRCode(name, email) {
+            console.log('Generating QR for:', name);
+            const qrContainer = document.getElementById('qrcode');
+            
+            if (!qrContainer) {
+                console.error('QR container not found');
+                return;
+            }
+
+            // Multiple checks to prevent duplicates
+            if (qrContainer.dataset.generated === 'true' || qrGenerated) {
+                console.log('QR already generated, stopping...');
+                return;
+            }
+            
+            qrContainer.dataset.generated = 'true';
+            qrContainer.innerHTML = '<p class="text-gray-400 text-sm">Gerando QR Code...</p>';
+
+            // Try server-side generation first
+            fetch('http://localhost:3000/generate-qr', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server not available');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    console.log('QR generated successfully:', data.attendee_id);
+                    // Display the generated QR code
+                    qrContainer.innerHTML = `
+                        <img src="${data.qr_data_url}" alt="QR Code" class="mx-auto rounded-lg" style="width: 150px; height: 150px;">
+                        <p class="text-xs text-gray-400 mt-2 font-mono">ID: ${data.attendee_id}</p>
+                        <p class="text-xs text-green-400 mt-1">✓ QR Code gerado!</p>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Server error');
+                }
+            })
+            .catch(error => {
+                console.warn('Server QR failed, using fallback:', error.message);
+                generateClientSideQR(name);
+            });
+        }
+
+        // Client-side QR generation with QRious library
+        function generateClientSideQR(name) {
+            console.log('Using client-side QR generation for:', name);
+            const qrContainer = document.getElementById('qrcode');
+            
+            if (!qrContainer) {
+                console.error('QR container not found');
+                return;
+            }
+
+            // Check if QRious library is available
+            if (typeof QRious === 'undefined') {
+                console.error('QRious library not loaded');
+                qrContainer.innerHTML = '<p class="text-red-400 text-sm">Biblioteca QR não carregada</p>';
+                return;
+            }
+
+            // Check if QR already generated for this user
+            const urlParams = new URLSearchParams(window.location.search);
+            const userEmail = urlParams.get('email') || '';
+            const storageKey = `qr_${userEmail}`;
+            
+            // Check localStorage for existing QR
+            const existingQR = localStorage.getItem(storageKey);
+            if (existingQR) {
+                try {
+                    const qrInfo = JSON.parse(existingQR);
+                    console.log('Using existing QR from localStorage:', qrInfo.id);
+                    
+                    // Generate QR from stored data using QRious
+                    const canvas = document.createElement('canvas');
+                    const qr = new QRious({
+                        element: canvas,
+                        value: qrInfo.data,
+                        size: 150,
+                        level: 'M'
+                    });
+                    
+                    qrContainer.innerHTML = '';
+                    qrContainer.appendChild(canvas);
+                    const idMsg = document.createElement('p');
+                    idMsg.className = 'text-xs text-gray-400 mt-2 font-mono';
+                    idMsg.textContent = `ID: ${qrInfo.id}`;
+                    qrContainer.appendChild(idMsg);
+                    const successMsg = document.createElement('p');
+                    successMsg.className = 'text-xs text-green-400 mt-1';
+                    successMsg.textContent = '✓ QR Code existente';
+                    qrContainer.appendChild(successMsg);
+                    return;
+                } catch (e) {
+                    console.error('Error parsing stored QR data:', e);
+                    localStorage.removeItem(storageKey);
+                }
+            }
+
+            generateNewQR();
+
+            function generateNewQR() {
+                // Generate new QR code
+                const uniqueId = 'VP-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                const qrData = `${uniqueId}|${name}`;
+                
+                console.log('Generating new QR with data:', qrData);
+                qrContainer.innerHTML = '<p class="text-blue-400 text-sm">Gerando QR Code...</p>';
+                
+                try {
+                    const canvas = document.createElement('canvas');
+                    const qr = new QRious({
+                        element: canvas,
+                        value: qrData,
+                        size: 150,
+                        level: 'M'
+                    });
+                    
+                    console.log('QR generated successfully with QRious');
+                    qrContainer.innerHTML = '';
+                    qrContainer.appendChild(canvas);
+                    
+                    const idMsg = document.createElement('p');
+                    idMsg.className = 'text-xs text-gray-400 mt-2 font-mono';
+                    idMsg.textContent = `ID: ${uniqueId}`;
+                    qrContainer.appendChild(idMsg);
+                    
+                    const successMsg = document.createElement('p');
+                    successMsg.className = 'text-xs text-green-400 mt-1';
+                    successMsg.textContent = '✓ QR Code gerado!';
+                    qrContainer.appendChild(successMsg);
+                    
+                    // Save to localStorage for future use
+                    if (userEmail) {
+                        const qrInfo = {
+                            id: uniqueId,
+                            name: name,
+                            email: userEmail,
+                            data: qrData,
+                            timestamp: new Date().toISOString()
+                        };
+                        localStorage.setItem(storageKey, JSON.stringify(qrInfo));
+                        console.log('QR saved to localStorage:', uniqueId);
+                        
+                        // Also save to server (if available)
+                        saveToServer(name, userEmail, uniqueId, qrData, canvas);
+                    }
+                } catch (error) {
+                    console.error('QR generation error:', error);
+                    qrContainer.innerHTML = '<p class="text-red-400 text-sm">Erro: ' + error.message + '</p>';
+                }
+            }
+        }
+
+        // Save QR data to server
+        function saveToServer(name, email, uniqueId, qrData, canvas) {
+            console.log('Saving QR to server...');
+            
+            // Convert canvas to blob
+            canvas.toBlob(function(blob) {
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('email', email);
+                formData.append('uniqueId', uniqueId);
+                formData.append('qrData', qrData);
+                formData.append('qrImage', blob, `${uniqueId}.png`);
+                
+                fetch('http://localhost:3000/save-qr', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('QR saved to server successfully:', data.filename);
+                    } else {
+                        console.warn('Server save failed:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.warn('Could not save to server:', error.message);
+                });
+            }, 'image/png');
+        }
+
+        // Add to Google Calendar
+        document.getElementById('addToCalendar').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const startDate = '20250826T160000Z';
+            const endDate = '20250826T190000Z';
+            const title = 'Evento Projeção Virtual - Live Demo';
+            const description = 'Live Demo Projeção Virtual com Chris Barnett da Christie Digital no estúdio da On + Avdesign';
+            const location = 'R. Plácido Vieira, 43 - Santo Amaro, São Paulo - SP, Brazil';
+
+            const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
+            
+            console.log('Opening calendar URL:', googleCalendarUrl);
+            window.open(googleCalendarUrl, '_blank');
+        });
+
+        // Quiz redirect
+        document.getElementById('startQuiz').addEventListener('click', function() {
+            // You can create a quiz page or redirect to an external quiz platform
+            alert('Quiz em desenvolvimento! Em breve você receberá o link por e-mail.');
+            // window.location.href = 'quiz.html';
+        });
+    </script>
+</body>
+</html>
