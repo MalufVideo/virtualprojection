@@ -195,13 +195,13 @@
                 return;
             }
 
-            // Get URL parameters
+            // Get URL parameters (support both nome and name for compatibility)
             const urlParams = new URLSearchParams(window.location.search);
-            const userName = urlParams.get('nome') || 'Participante';
+            const userName = urlParams.get('nome') || urlParams.get('name') || 'Participante';
             const userEmail = urlParams.get('email') || '';
-            const userPhone = urlParams.get('telefone') || '';
-            const userCompany = urlParams.get('empresa') || '';
-            const userPosition = urlParams.get('cargo') || '';
+            const userPhone = urlParams.get('telefone') || urlParams.get('phone') || '';
+            const userCompany = urlParams.get('empresa') || urlParams.get('company') || '';
+            const userPosition = urlParams.get('cargo') || urlParams.get('position') || '';
             const attendeeId = urlParams.get('attendee_id') || '';
 
             console.log('User data:', { userName, userEmail, userPhone, userCompany, userPosition, attendeeId });

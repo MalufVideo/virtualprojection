@@ -458,6 +458,7 @@
 
                 const result = await response.json();
                 console.log('Server response:', result);
+                console.log('Response status:', response.status);
 
                 if (result.success && result.attendee_id) {
                     const successMessage = document.getElementById('successMessage');
