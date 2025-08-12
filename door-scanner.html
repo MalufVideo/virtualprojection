@@ -129,8 +129,8 @@
                         <span id="detail-id" class="font-mono text-sm"></span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-400">Status:</span>
-                        <span id="detail-status" class="font-medium"></span>
+                        <span class="text-gray-400">Check-in:</span>
+                        <span id="detail-checkin-status" class="font-medium"></span>
                     </div>
                 </div>
                 
@@ -264,6 +264,8 @@
         // Validate QR Code with server
         async function validateQRCode(qrData) {
             try {
+                console.log('Validating QR code:', qrData);
+                
                 const response = await fetch('/validate-qr', {
                     method: 'POST',
                     headers: {
@@ -272,16 +274,21 @@
                     body: JSON.stringify({ qrData: qrData })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const result = await response.json();
+                console.log('Validation result:', result);
                 
-                if (result.success) {
+                if (result.success && result.attendee) {
                     showValidQR(result.attendee);
                 } else {
                     showInvalidQR(result.error || 'QR Code não encontrado');
                 }
             } catch (error) {
                 console.error('Validation error:', error);
-                showInvalidQR('Erro de conexão com o servidor');
+                showInvalidQR('Erro de conexão com o servidor: ' + error.message);
             }
         }
 
@@ -297,11 +304,11 @@
             document.getElementById('attendee-name').textContent = attendee.name;
             
             // Show attendee details
-            document.getElementById('detail-name').textContent = `${attendee.name} ${attendee.lastname || ''}`;
-            document.getElementById('detail-email').textContent = attendee.email;
+            document.getElementById('detail-name').textContent = attendee.name;
+            document.getElementById('detail-email').textContent = attendee.email || 'N/A';
             document.getElementById('detail-id').textContent = attendee.id;
             
-            const statusElement = document.getElementById('detail-status');
+            const statusElement = document.getElementById('detail-checkin-status');
             const checkinBtn = document.getElementById('checkin-btn');
             
             if (attendee.checked_in) {
@@ -309,7 +316,7 @@
                 checkinBtn.innerHTML = '<i class="fas fa-redo mr-2"></i> Check-in Novamente';
                 checkinBtn.className = 'w-full mt-6 bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-6 rounded-lg font-medium transition-colors';
             } else {
-                statusElement.innerHTML = '<span class="text-green-400"><i class="fas fa-check-circle mr-1"></i> Válido</span>';
+                statusElement.innerHTML = '<span class="text-green-400"><i class="fas fa-check-circle mr-1"></i> Válido para Check-in</span>';
                 checkinBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Confirmar Entrada';
                 checkinBtn.className = 'w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors';
             }
@@ -359,9 +366,18 @@
 
         // Confirm check-in
         async function confirmCheckIn() {
-            if (!currentAttendee) return;
+            if (!currentAttendee) {
+                alert('Nenhum participante selecionado');
+                return;
+            }
             
             try {
+                console.log('Confirming check-in for attendee:', currentAttendee.id);
+                
+                const checkinBtn = document.getElementById('checkin-btn');
+                checkinBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processando...';
+                checkinBtn.disabled = true;
+                
                 const response = await fetch('/checkin', {
                     method: 'POST',
                     headers: {
@@ -372,14 +388,21 @@
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const result = await response.json();
+                console.log('Check-in result:', result);
                 
                 if (result.success) {
                     // Update button to show success
-                    const checkinBtn = document.getElementById('checkin-btn');
                     checkinBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Check-in Confirmado!';
                     checkinBtn.className = 'w-full mt-6 bg-green-600 text-white py-3 px-6 rounded-lg font-medium';
-                    checkinBtn.disabled = true;
+                    
+                    // Update check-in status display
+                    const statusElement = document.getElementById('detail-checkin-status');
+                    statusElement.innerHTML = '<span class="text-green-400"><i class="fas fa-check-circle mr-1"></i> Check-in Confirmado</span>';
                     
                     // Update stats
                     loadStats();
@@ -392,11 +415,16 @@
                         }
                     }, 3000);
                 } else {
-                    alert('Erro ao confirmar check-in: ' + result.error);
+                    checkinBtn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Erro no Check-in';
+                    checkinBtn.className = 'w-full mt-6 bg-red-600 text-white py-3 px-6 rounded-lg font-medium';
+                    alert('Erro ao confirmar check-in: ' + (result.error || 'Erro desconhecido'));
                 }
             } catch (error) {
                 console.error('Check-in error:', error);
-                alert('Erro de conexão ao confirmar check-in');
+                const checkinBtn = document.getElementById('checkin-btn');
+                checkinBtn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Erro de Conexão';
+                checkinBtn.className = 'w-full mt-6 bg-red-600 text-white py-3 px-6 rounded-lg font-medium';
+                alert('Erro de conexão ao confirmar check-in: ' + error.message);
             }
         }
 
