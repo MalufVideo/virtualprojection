@@ -261,10 +261,20 @@
             // Ignore scan failures (camera still scanning)
         }
 
-        // Validate QR Code with server
+        // Validate QR Code - simplified to just check if ID exists
         async function validateQRCode(qrData) {
             try {
                 console.log('Validating QR code:', qrData);
+                
+                // Extract ID from QR code (format: ID|Name)
+                const parts = qrData.split('|');
+                if (parts.length !== 2) {
+                    showInvalidQR('Formato de QR Code inválido');
+                    return;
+                }
+                
+                const [attendeeId, qrName] = parts;
+                console.log('Checking attendee ID:', attendeeId);
                 
                 const response = await fetch('/validate-qr', {
                     method: 'POST',
@@ -282,61 +292,53 @@
                 console.log('Validation result:', result);
                 
                 if (result.success && result.attendee) {
-                    showValidQR(result.attendee);
+                    showWelcomeScreen(result.attendee);
                 } else {
-                    showInvalidQR(result.error || 'QR Code não encontrado');
+                    showInvalidQR(result.error || 'Participante não encontrado');
                 }
             } catch (error) {
                 console.error('Validation error:', error);
-                showInvalidQR('Erro de conexão com o servidor: ' + error.message);
+                showInvalidQR('Erro de conexão: ' + error.message);
             }
         }
 
-        // Show valid QR result
-        function showValidQR(attendee) {
+        // Show welcome screen for doorman
+        function showWelcomeScreen(attendee) {
             currentAttendee = attendee;
             
             const statusDisplay = document.getElementById('status-display');
-            const welcomeMessage = document.getElementById('welcome-message');
-            const attendeeDetails = document.getElementById('attendee-details');
             
-            // Show welcome message
-            document.getElementById('attendee-name').textContent = attendee.name;
+            // Create big green welcome box for doorman
+            statusDisplay.innerHTML = `
+                <div class="text-center p-8 bg-green-600 rounded-3xl">
+                    <div class="text-6xl mb-4">✅</div>
+                    <div class="text-4xl font-bold mb-4">BEM-VINDO(A)!</div>
+                    <div class="text-3xl font-bold text-white mb-6">${attendee.name}</div>
+                    <div class="text-lg text-green-100 mb-6">
+                        ${attendee.checked_in ? 'PARTICIPANTE JÁ FEZ CHECK-IN' : 'PARTICIPANTE VÁLIDO - PODE ENTRAR'}
+                    </div>
+                    <button id="confirm-arrival-btn" class="bg-white text-green-600 font-bold py-4 px-8 rounded-xl text-xl hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-check mr-2"></i> Confirmar Chegada
+                    </button>
+                </div>
+            `;
             
-            // Show attendee details
-            document.getElementById('detail-name').textContent = attendee.name;
-            document.getElementById('detail-email').textContent = attendee.email || 'N/A';
-            document.getElementById('detail-id').textContent = attendee.id;
-            
-            const statusElement = document.getElementById('detail-checkin-status');
-            const checkinBtn = document.getElementById('checkin-btn');
-            
-            if (attendee.checked_in) {
-                statusElement.innerHTML = '<span class="text-yellow-400"><i class="fas fa-clock mr-1"></i> Já fez check-in</span>';
-                checkinBtn.innerHTML = '<i class="fas fa-redo mr-2"></i> Check-in Novamente';
-                checkinBtn.className = 'w-full mt-6 bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-6 rounded-lg font-medium transition-colors';
-            } else {
-                statusElement.innerHTML = '<span class="text-green-400"><i class="fas fa-check-circle mr-1"></i> Válido para Check-in</span>';
-                checkinBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Confirmar Entrada';
-                checkinBtn.className = 'w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors';
-            }
-            
-            // Set status styling
-            statusDisplay.className = 'status-success rounded-2xl p-4';
-            
-            // Show elements
+            // Show the welcome screen
             statusDisplay.classList.remove('hidden');
-            welcomeMessage.classList.remove('hidden');
-            attendeeDetails.classList.remove('hidden');
-            document.getElementById('error-message').classList.add('hidden');
+            statusDisplay.className = 'bg-green-600 rounded-2xl p-4 animate-pulse';
             
-            // Auto-resume scanning after 10 seconds
+            // Add event listener to confirm arrival button
+            document.getElementById('confirm-arrival-btn').addEventListener('click', () => {
+                confirmArrival(attendee);
+            });
+            
+            // Auto-resume scanning after 15 seconds
             setTimeout(() => {
                 if (html5QrcodeScanner) {
                     html5QrcodeScanner.resume();
                     clearStatus();
                 }
-            }, 10000);
+            }, 15000);
         }
 
         // Show invalid QR result
@@ -364,19 +366,14 @@
             }, 5000);
         }
 
-        // Confirm check-in
-        async function confirmCheckIn() {
-            if (!currentAttendee) {
-                alert('Nenhum participante selecionado');
-                return;
-            }
-            
+        // Confirm arrival and send webhook to n8n
+        async function confirmArrival(attendee) {
             try {
-                console.log('Confirming check-in for attendee:', currentAttendee.id);
+                console.log('Confirming arrival for:', attendee.name, 'ID:', attendee.id);
                 
-                const checkinBtn = document.getElementById('checkin-btn');
-                checkinBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processando...';
-                checkinBtn.disabled = true;
+                const button = document.getElementById('confirm-arrival-btn');
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Confirmando...';
+                button.disabled = true;
                 
                 const response = await fetch('/checkin', {
                     method: 'POST',
@@ -384,7 +381,7 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        attendeeId: currentAttendee.id
+                        attendeeId: attendee.id
                     })
                 });
 
@@ -396,35 +393,43 @@
                 console.log('Check-in result:', result);
                 
                 if (result.success) {
-                    // Update button to show success
-                    checkinBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Check-in Confirmado!';
-                    checkinBtn.className = 'w-full mt-6 bg-green-600 text-white py-3 px-6 rounded-lg font-medium';
-                    
-                    // Update check-in status display
-                    const statusElement = document.getElementById('detail-checkin-status');
-                    statusElement.innerHTML = '<span class="text-green-400"><i class="fas fa-check-circle mr-1"></i> Check-in Confirmado</span>';
+                    // Show success message
+                    const statusDisplay = document.getElementById('status-display');
+                    statusDisplay.innerHTML = `
+                        <div class="text-center p-8 bg-green-700 rounded-3xl">
+                            <div class="text-6xl mb-4">🎉</div>
+                            <div class="text-3xl font-bold mb-4">CHEGADA CONFIRMADA!</div>
+                            <div class="text-2xl text-green-100 mb-4">${attendee.name}</div>
+                            <div class="text-lg text-green-200">
+                                Check-in realizado com sucesso!<br>
+                                Dados enviados para o sistema.
+                            </div>
+                        </div>
+                    `;
                     
                     // Update stats
                     loadStats();
                     
-                    // Auto-resume after 3 seconds
+                    // Auto-resume scanning after 5 seconds
                     setTimeout(() => {
                         if (html5QrcodeScanner) {
                             html5QrcodeScanner.resume();
                             clearStatus();
                         }
-                    }, 3000);
+                    }, 5000);
                 } else {
-                    checkinBtn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Erro no Check-in';
-                    checkinBtn.className = 'w-full mt-6 bg-red-600 text-white py-3 px-6 rounded-lg font-medium';
-                    alert('Erro ao confirmar check-in: ' + (result.error || 'Erro desconhecido'));
+                    button.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Erro';
+                    button.className = 'bg-red-600 text-white font-bold py-4 px-8 rounded-xl text-xl';
+                    alert('Erro ao confirmar chegada: ' + (result.error || 'Erro desconhecido'));
                 }
             } catch (error) {
-                console.error('Check-in error:', error);
-                const checkinBtn = document.getElementById('checkin-btn');
-                checkinBtn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Erro de Conexão';
-                checkinBtn.className = 'w-full mt-6 bg-red-600 text-white py-3 px-6 rounded-lg font-medium';
-                alert('Erro de conexão ao confirmar check-in: ' + error.message);
+                console.error('Arrival confirmation error:', error);
+                const button = document.getElementById('confirm-arrival-btn');
+                if (button) {
+                    button.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Erro de Conexão';
+                    button.className = 'bg-red-600 text-white font-bold py-4 px-8 rounded-xl text-xl';
+                }
+                alert('Erro de conexão: ' + error.message);
             }
         }
 

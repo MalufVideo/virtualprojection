@@ -454,10 +454,12 @@
         document.getElementById('addToCalendar').addEventListener('click', function(e) {
             e.preventDefault();
             
-            const startDate = '20250826T160000Z';
-            const endDate = '20250826T190000Z';
-            const title = 'Evento Projeção Virtual - Live Demo';
-            const description = 'Live Demo Projeção Virtual com Chris Barnett da Christie Digital no estúdio da On + Avdesign';
+            // August 26, 2025, 7:00 PM - 10:00 PM Brazil time (UTC-3)
+            // Convert to UTC: 7:00 PM BRT = 10:00 PM UTC (22:00)
+            const startDate = '20250826T220000Z';  // 7:00 PM BRT = 10:00 PM UTC
+            const endDate = '20250827T010000Z';    // 10:00 PM BRT = 1:00 AM UTC next day
+            const title = 'Virtual Projection Demo - ON + Avdesign';
+            const description = 'Live Demo de Projeção Virtual com tecnologia Christie Digital no estúdio da On + Avdesign. Evento exclusivo para demonstração da nova tecnologia de produção virtual.';
             const location = 'R. Plácido Vieira, 43 - Santo Amaro, São Paulo - SP, Brazil';
 
             const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
