@@ -45,12 +45,14 @@ async function nocoGetRecord(id) {
 }
 
 async function nocoUpdateRecord(id, payload) {
-    // Use test webhook URL for mapping columns
-    const testWebhookUrl = 'https://n8n.onav.com.br/webhook-test/1a527646-c06c-46b6-a7a0-1331072257ee';
+    // Use production webhook URL for updating QR info
+    const webhookUrl = 'https://n8n.onav.com.br/webhook/1a527646-c06c-46b6-a7a0-1331072257ee';
     
     try {
-        await axios.patch(testWebhookUrl, { Id: id, ...payload });
-        return { ok: true, via: 'webhook' };
+        console.log('Calling QR update webhook with:', { Id: id, ...payload });
+        const response = await axios.patch(webhookUrl, { Id: id, ...payload });
+        console.log('QR update webhook response:', response.data);
+        return { ok: true, via: 'webhook', data: response.data };
     } catch (hookErr) {
         // Log error but don't throw - QR generation should continue
         const detail = hookErr?.response?.data || hookErr.message;
@@ -503,9 +505,11 @@ app.post('/update-qr', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Missing required fields' });
         }
 
-        // Call the n8n QR webhook using PATCH method for test mapping
-        const webhookUrl = 'https://n8n.onav.com.br/webhook-test/1a527646-c06c-46b6-a7a0-1331072257ee';
+        // Call the n8n QR webhook using PATCH method for production
+        const webhookUrl = 'https://n8n.onav.com.br/webhook/1a527646-c06c-46b6-a7a0-1331072257ee';
+        console.log('Calling QR update webhook from client with:', { attendee_id, qr_data, qr_code_url, name, email });
         const { data } = await axios.patch(webhookUrl, {
+            Id: attendee_id,  // Use Id for NocoDB record ID
             attendee_id,
             qr_data,
             qr_code_url,
@@ -513,6 +517,7 @@ app.post('/update-qr', async (req, res) => {
             email
         });
 
+        console.log('QR update webhook success:', data);
         res.json({ success: true, data });
     } catch (error) {
         console.error('QR webhook proxy error:', error?.response?.data || error.message);
