@@ -81,21 +81,29 @@
 
         // Load attendees data
         function loadAttendeesData() {
-            fetch('http://localhost:3000/attendees')
-                .then(response => response.json())
+            console.log('Loading attendees data...');
+            fetch('/attendees')
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Received data:', data);
                     if (data.success) {
                         attendeesData = data.attendees;
+                        console.log('Attendees loaded:', attendeesData.length);
                         updateStats();
                         updateAttendeesList();
                     } else {
                         console.error('Error loading data:', data.error);
+                        document.getElementById('attendeesList').innerHTML = 
+                            '<tr><td colspan="11" class="text-center py-4 text-gray-400">Erro ao carregar dados: ' + (data.error || 'Erro desconhecido') + '</td></tr>';
                     }
                 })
                 .catch(error => {
                     console.error('Error loading data:', error);
                     document.getElementById('attendeesList').innerHTML = 
-                        '<tr><td colspan="6" class="text-center py-4 text-gray-400">Nenhum dado encontrado</td></tr>';
+                        '<tr><td colspan="11" class="text-center py-4 text-gray-400">Erro de conexão: ' + error.message + '</td></tr>';
                 });
         }
 
@@ -154,7 +162,7 @@
         // Approve & send a single attendee
         async function approveAndSend(id) {
             try {
-                const res = await fetch('http://localhost:3000/approve-and-send', {
+                const res = await fetch('/approve-and-send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id })
@@ -181,7 +189,7 @@
             let ok = 0, fail = 0;
             for (const a of pendentes) {
                 try {
-                    const res = await fetch('http://localhost:3000/approve-and-send', {
+                    const res = await fetch('/approve-and-send', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id: a.id })

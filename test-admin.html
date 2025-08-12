@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin | Virtual Projection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Test Admin API</h1>
+        
+        <div class="bg-gray-800 p-6 rounded-lg mb-8">
+            <button onclick="testAPI()" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded">
+                Test /attendees API
+            </button>
+        </div>
+
+        <div id="results" class="bg-gray-800 p-6 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">Results</h2>
+            <pre id="resultContent" class="text-sm text-gray-300 overflow-auto"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            try {
+                console.log('Testing /attendees API...');
+                
+                const response = await fetch('/attendees');
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
+                const result = await response.json();
+                console.log('API Response:', result);
+                
+                document.getElementById('resultContent').textContent = 
+                    JSON.stringify(result, null, 2);
+                    
+                if (result.success && result.attendees) {
+                    console.log('Number of attendees:', result.attendees.length);
+                    if (result.attendees.length > 0) {
+                        console.log('First attendee:', result.attendees[0]);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('resultContent').textContent = 
+                    'Error: ' + error.message;
+            }
+        }
+        
+        // Auto-test on load
+        window.onload = testAPI;
+    </script>
+</body>
+</html>
