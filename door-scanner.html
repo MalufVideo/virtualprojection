@@ -194,7 +194,7 @@
         // Load statistics
         async function loadStats() {
             try {
-                const response = await fetch('http://localhost:3000/attendees');
+                const response = await fetch('/attendees');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -264,7 +264,7 @@
         // Validate QR Code with server
         async function validateQRCode(qrData) {
             try {
-                const response = await fetch('http://localhost:3000/validate-qr', {
+                const response = await fetch('/validate-qr', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -297,7 +297,7 @@
             document.getElementById('attendee-name').textContent = attendee.name;
             
             // Show attendee details
-            document.getElementById('detail-name').textContent = attendee.name;
+            document.getElementById('detail-name').textContent = `${attendee.name} ${attendee.lastname || ''}`;
             document.getElementById('detail-email').textContent = attendee.email;
             document.getElementById('detail-id').textContent = attendee.id;
             
@@ -362,14 +362,13 @@
             if (!currentAttendee) return;
             
             try {
-                const response = await fetch('http://localhost:3000/checkin', {
+                const response = await fetch('/checkin', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ 
-                        attendeeId: currentAttendee.id,
-                        email: currentAttendee.email 
+                    body: JSON.stringify({
+                        attendeeId: currentAttendee.id
                     })
                 });
 

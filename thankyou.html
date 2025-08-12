@@ -83,8 +83,20 @@
                 </div>
             </div>
 
+            <!-- QR Code Display -->
+            <div class="glass rounded-3xl p-8 card-3d text-center mb-16">
+                <h3 class="text-2xl font-bold mb-6 neon-text">Seu QR Code</h3>
+                <div id="qrcode" class="mb-4 flex flex-col items-center justify-center">
+                    <p class="text-gray-400 text-sm">Carregando...</p>
+                </div>
+                <p class="text-sm text-gray-300">
+                    Este QR Code será usado para sua entrada no evento.<br>
+                    O convite será enviado por email após aprovação.
+                </p>
+            </div>
+
             <!-- Action Buttons -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
                 <!-- Add to Calendar -->
                 <div class="glass rounded-3xl p-6 card-3d text-center">
                     <div class="mb-4">
@@ -95,17 +107,6 @@
                     <button id="addToCalendar" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">
                         <i class="fab fa-google mr-2"></i> Google Agenda
                     </button>
-                </div>
-
-                <!-- QR Code -->
-                <div class="glass rounded-3xl p-6 card-3d text-center">
-                    <div class="mb-4">
-                        <i class="fas fa-qrcode text-4xl text-purple-400"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-4">Seu QR Code</h3>
-                    <p class="text-gray-300 text-sm mb-4">Apresente este código na entrada do evento.</p>
-                    <div id="qrcode" class="bg-white p-4 rounded-lg mx-auto mb-4" style="width: fit-content;"></div>
-                    <p id="attendeeName" class="text-sm text-gray-400 font-medium"></p>
                 </div>
 
                 <!-- Quiz -->
@@ -198,8 +199,12 @@
             const urlParams = new URLSearchParams(window.location.search);
             const userName = urlParams.get('nome') || 'Participante';
             const userEmail = urlParams.get('email') || '';
+            const userPhone = urlParams.get('telefone') || '';
+            const userCompany = urlParams.get('empresa') || '';
+            const userPosition = urlParams.get('cargo') || '';
+            const attendeeId = urlParams.get('attendee_id') || '';
 
-            console.log('User data:', { userName, userEmail });
+            console.log('User data:', { userName, userEmail, userPhone, userCompany, userPosition, attendeeId });
 
             // Display user name
             const nameElement = document.getElementById('attendeeName');
@@ -208,10 +213,10 @@
             }
 
             // Only generate QR if we have valid user data and haven't generated one yet
-            if (userName && userName !== 'Participante' && userEmail && !qrGenerated) {
+            if (userName && userName !== 'Participante' && userEmail && attendeeId && !qrGenerated) {
                 qrGenerated = true;
-                // Use client-side generation directly for reliability
-                generateClientSideQR(userName);
+                // Generate QR using attendee ID and call QR webhook
+                generateQRWithWebhook(attendeeId, userName, userEmail);
             } else {
                 const qrContainer = document.getElementById('qrcode');
                 if (qrContainer && !qrGenerated) {
@@ -220,9 +225,9 @@
             }
         });
 
-        // Generate QR Code function (called only once)
-        function generateQRCode(name, email) {
-            console.log('Generating QR for:', name);
+        // Generate QR Code using webhook
+        function generateQRWithWebhook(attendeeId, name, email) {
+            console.log('Generating QR with webhook for:', name, 'ID:', attendeeId);
             const qrContainer = document.getElementById('qrcode');
             
             if (!qrContainer) {
@@ -230,49 +235,68 @@
                 return;
             }
 
-            // Multiple checks to prevent duplicates
-            if (qrContainer.dataset.generated === 'true' || qrGenerated) {
-                console.log('QR already generated, stopping...');
-                return;
-            }
-            
-            qrContainer.dataset.generated = 'true';
             qrContainer.innerHTML = '<p class="text-gray-400 text-sm">Gerando QR Code...</p>';
 
-            // Try server-side generation first
-            fetch('http://localhost:3000/generate-qr', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: name,
-                    email: email
+            // Generate QR data and call webhook
+            const qrData = `${attendeeId}|${name}`;
+            
+            // Generate QR image first
+            if (typeof QRious !== 'undefined') {
+                const canvas = document.createElement('canvas');
+                const qr = new QRious({
+                    element: canvas,
+                    value: qrData,
+                    size: 200,
+                    level: 'M'
+                });
+                
+                // Display QR immediately
+                qrContainer.innerHTML = '';
+                const qrWrapper = document.createElement('div');
+                qrWrapper.className = 'flex flex-col items-center';
+                qrWrapper.appendChild(canvas);
+                
+                const idMsg = document.createElement('p');
+                idMsg.className = 'text-xs text-gray-400 mt-2 font-mono';
+                idMsg.textContent = `ID: ${attendeeId}`;
+                qrWrapper.appendChild(idMsg);
+                
+                const statusMsg = document.createElement('p');
+                statusMsg.className = 'text-xs text-green-400 mt-1';
+                statusMsg.textContent = '✓ QR Code gerado!';
+                qrWrapper.appendChild(statusMsg);
+                
+                qrContainer.appendChild(qrWrapper);
+                
+                // Call QR webhook to update database in the background (don't wait for response)
+                fetch('https://n8n.onav.com.br/webhook-test/1a527646-c06c-46b6-a7a0-1331072257ee', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        attendee_id: attendeeId,
+                        qr_data: qrData,
+                        qr_code_url: `data:image/png;base64,${canvas.toDataURL().split(',')[1]}`,
+                        name: name,
+                        email: email
+                    })
                 })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Server not available');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    console.log('QR generated successfully:', data.attendee_id);
-                    // Display the generated QR code
-                    qrContainer.innerHTML = `
-                        <img src="${data.qr_data_url}" alt="QR Code" class="mx-auto rounded-lg" style="width: 150px; height: 150px;">
-                        <p class="text-xs text-gray-400 mt-2 font-mono">ID: ${data.attendee_id}</p>
-                        <p class="text-xs text-green-400 mt-1">✓ QR Code gerado!</p>
-                    `;
-                } else {
-                    throw new Error(data.error || 'Server error');
-                }
-            })
-            .catch(error => {
-                console.warn('Server QR failed, using fallback:', error.message);
-                generateClientSideQR(name);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    console.log('QR webhook response:', data);
+                    if (data.success) {
+                        statusMsg.textContent = '✓ QR Code salvo na base!';
+                        statusMsg.className = 'text-xs text-green-400 mt-1';
+                    }
+                })
+                .catch(error => {
+                    console.warn('QR webhook failed (background):', error);
+                    // Don't change the UI - QR is already displayed successfully
+                });
+            } else {
+                qrContainer.innerHTML = '<p class="text-red-400 text-sm">Biblioteca QR não carregada</p>';
+            }
         }
 
         // Client-side QR generation with QRious library
@@ -434,9 +458,38 @@
 
         // Quiz redirect
         document.getElementById('startQuiz').addEventListener('click', function() {
-            // You can create a quiz page or redirect to an external quiz platform
-            alert('Quiz em desenvolvimento! Em breve você receberá o link por e-mail.');
-            // window.location.href = 'quiz.html';
+            // Get user data from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const userName = urlParams.get('nome') || '';
+            const userEmail = urlParams.get('email') || '';
+            const userCompany = urlParams.get('empresa') || '';
+            const userPhone = urlParams.get('telefone') || '';
+            const userPosition = urlParams.get('cargo') || '';
+            
+            if (userName && userEmail && userCompany) {
+                // Store user data securely in sessionStorage
+                const userData = {
+                    name: userName,
+                    email: userEmail,
+                    company: userCompany,
+                    phone: userPhone,
+                    position: userPosition,
+                    timestamp: Date.now()
+                };
+                
+                try {
+                    sessionStorage.setItem('quizUserData', JSON.stringify(userData));
+                    console.log('User data stored securely for quiz');
+                } catch (error) {
+                    console.warn('Could not store user data in sessionStorage:', error);
+                }
+                
+                // Redirect to quiz without exposing user data in URL
+                window.location.href = 'quiz/index.html';
+            } else {
+                // Fallback - redirect to quiz without user data
+                window.location.href = 'quiz/index.html';
+            }
         });
     </script>
 </body>

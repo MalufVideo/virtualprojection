@@ -40,7 +40,7 @@
                     Atualizar Dados
                 </button>
                 <button id="sendEmails" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg">
-                    Enviar E-mails com QR
+                    Aprovar & Enviar todos pendentes
                 </button>
                 <button id="downloadList" class="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg">
                     Download Lista
@@ -58,9 +58,14 @@
                             <th class="py-3 px-4">ID</th>
                             <th class="py-3 px-4">Nome</th>
                             <th class="py-3 px-4">E-mail</th>
+                            <th class="py-3 px-4">Empresa</th>
+                            <th class="py-3 px-4">Telefone</th>
+                            <th class="py-3 px-4">Cargo</th>
                             <th class="py-3 px-4">Data/Hora</th>
                             <th class="py-3 px-4">QR Code</th>
                             <th class="py-3 px-4">E-mail Enviado</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="attendeesList">
@@ -76,12 +81,16 @@
 
         // Load attendees data
         function loadAttendeesData() {
-            fetch('qr/attendees.json')
+            fetch('http://localhost:3000/attendees')
                 .then(response => response.json())
                 .then(data => {
-                    attendeesData = data;
-                    updateStats();
-                    updateAttendeesList();
+                    if (data.success) {
+                        attendeesData = data.attendees;
+                        updateStats();
+                        updateAttendeesList();
+                    } else {
+                        console.error('Error loading data:', data.error);
+                    }
                 })
                 .catch(error => {
                     console.error('Error loading data:', error);
@@ -93,8 +102,8 @@
         // Update statistics
         function updateStats() {
             document.getElementById('totalAttendees').textContent = attendeesData.length;
-            document.getElementById('qrGenerated').textContent = attendeesData.filter(a => a.qr_file).length;
-            document.getElementById('emailsSent').textContent = attendeesData.filter(a => a.email_sent).length;
+            document.getElementById('qrGenerated').textContent = attendeesData.filter(a => a.qr_code_url).length;
+            document.getElementById('emailsSent').textContent = attendeesData.filter(a => a.confirmation_sent).length;
         }
 
         // Update attendees list
@@ -102,24 +111,39 @@
             const tbody = document.getElementById('attendeesList');
             tbody.innerHTML = '';
 
-            attendeesData.forEach(attendee => {
+            attendeesData.forEach(guest => {
                 const row = document.createElement('tr');
                 row.className = 'border-b border-gray-700 hover:bg-gray-700';
                 row.innerHTML = `
-                    <td class="py-3 px-4 font-mono text-sm">${attendee.id}</td>
-                    <td class="py-3 px-4">${attendee.name}</td>
-                    <td class="py-3 px-4">${attendee.email}</td>
-                    <td class="py-3 px-4 text-sm">${new Date(attendee.timestamp).toLocaleString('pt-BR')}</td>
+                    <td class="py-3 px-4 font-mono text-sm">${guest.id}</td>
+                    <td class="py-3 px-4">${guest.name || ''}</td>
+                    <td class="py-3 px-4">${guest.email || ''}</td>
+                    <td class="py-3 px-4">${guest.company || ''}</td>
+                    <td class="py-3 px-4">${guest.phone || ''}</td>
+                    <td class="py-3 px-4">${guest.position || ''}</td>
+                    <td class="py-3 px-4 text-sm">${guest.created_at ? new Date(guest.created_at).toLocaleString('pt-BR') : ''}</td>
                     <td class="py-3 px-4">
-                        ${attendee.qr_file ? 
-                            `<a href="qr/${attendee.qr_file}" target="_blank" class="text-blue-400 hover:underline">Ver QR</a>` : 
+                        ${guest.qr_code_url ?
+                            `<a href="${guest.qr_code_url}" target="_blank" class="text-blue-400 hover:underline">Ver QR</a>` :
                             '<span class="text-red-400">N/A</span>'
                         }
                     </td>
                     <td class="py-3 px-4">
-                        ${attendee.email_sent ? 
-                            '<span class="text-green-400">✓ Enviado</span>' : 
+                        ${guest.confirmation_sent ?
+                            '<span class="text-green-400">✓ Enviado</span>' :
                             '<span class="text-yellow-400">⏳ Pendente</span>'
+                        }
+                    </td>
+                    <td class="py-3 px-4">
+                        ${guest.approval_status === 'approved' ?
+                            '<span class="text-green-400">Aprovado</span>' :
+                            '<span class="text-yellow-400">Aguardando</span>'
+                        }
+                    </td>
+                    <td class="py-3 px-4">
+                        ${guest.confirmation_sent ?
+                            '<span class="text-gray-400">—</span>' :
+                            `<button class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded" onclick="approveAndSend('${guest.id}')">Aprovar & Enviar</button>`
                         }
                     </td>
                 `;
@@ -127,36 +151,51 @@
             });
         }
 
-        // Send emails
-        function sendEmails() {
+        // Approve & send a single attendee
+        async function approveAndSend(id) {
+            try {
+                const res = await fetch('http://localhost:3000/approve-and-send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const out = await res.json();
+                if (out.success) {
+                    alert('Aprovado e enviado com sucesso!');
+                    loadAttendeesData();
+                } else {
+                    alert('Falha ao aprovar/enviar: ' + (out.error || 'Erro'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erro de conexão');
+            }
+        }
+
+        // Bulk: approve and send to all pending
+        async function sendEmails() {
             const button = document.getElementById('sendEmails');
             button.disabled = true;
             button.textContent = 'Enviando...';
-
-            fetch('send-qr-email.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'send_email=1'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(`${data.emails_sent} e-mails enviados com sucesso!`);
-                    loadAttendeesData(); // Refresh data
-                } else {
-                    alert('Erro ao enviar e-mails: ' + (data.error || 'Erro desconhecido'));
+            const pendentes = attendeesData.filter(a => !a.confirmation_sent);
+            let ok = 0, fail = 0;
+            for (const a of pendentes) {
+                try {
+                    const res = await fetch('http://localhost:3000/approve-and-send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: a.id })
+                    });
+                    const out = await res.json();
+                    if (out.success) ok++; else fail++;
+                } catch {
+                    fail++;
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Erro ao enviar e-mails');
-            })
-            .finally(() => {
-                button.disabled = false;
-                button.textContent = 'Enviar E-mails com QR';
-            });
+            }
+            alert(`Concluído. Sucesso: ${ok}, Falhas: ${fail}`);
+            loadAttendeesData();
+            button.disabled = false;
+            button.textContent = 'Aprovar & Enviar todos pendentes';
         }
 
         // Download attendees list as CSV
@@ -167,9 +206,9 @@
                     attendee.id,
                     attendee.name,
                     attendee.email,
-                    attendee.timestamp,
-                    attendee.qr_file || '',
-                    attendee.email_sent ? 'Sim' : 'Não'
+                    attendee.created_at,
+                    attendee.qr_code_url || '',
+                    attendee.confirmation_sent ? 'Sim' : 'Não'
                 ].join(','));
             });
 

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Quiz Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 12px;
+        }
+        .test-button {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            opacity: 0.9;
+        }
+        .url-box {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            word-break: break-all;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Test Quiz Flow</h1>
+        
+        <h3>Test Scenarios:</h3>
+        
+        <div>
+            <h4>1. Quiz without user data (normal flow)</h4>
+            <p>Should show landing page → questions → form → results</p>
+            <a href="quiz/index.html" class="test-button">Start Normal Quiz</a>
+            <div class="url-box">quiz/index.html</div>
+        </div>
+        
+        <div>
+            <h4>2. Quiz with user data (secure method)</h4>
+            <p>Should skip landing page and form → go directly to questions → results</p>
+            <button onclick="startSecureQuiz()" class="test-button">Start Quiz with Secure User Data</button>
+            <div class="url-box">Uses sessionStorage (secure) - no user data in URL</div>
+        </div>
+        
+        <div>
+            <h4>3. Quiz with user data (legacy URL method)</h4>
+            <p>Fallback method for testing - Should skip landing page and form</p>
+            <a href="quiz/index.html?nome=João%20Silva&email=joao@produtora.com&empresa=Produtora%20XYZ&telefone=11999999999" class="test-button">Start Quiz with URL Data (Legacy)</a>
+            <div class="url-box">quiz/index.html?nome=João Silva&email=joao@produtora.com&empresa=Produtora XYZ&telefone=11999999999</div>
+        </div>
+        
+        <div>
+            <h4>4. Admin Panel</h4>
+            <p>Should show leads and in-progress sessions</p>
+            <a href="quiz/index.html?admin=true" class="test-button">Open Admin Panel</a>
+            <div class="url-box">quiz/index.html?admin=true</div>
+        </div>
+        
+        <div>
+            <h4>5. Test Supabase Saving</h4>
+            <p>Debug console to check real-time saving</p>
+            <button onclick="testSupabaseSaving()" class="test-button">Test Supabase Connection</button>
+            <div id="testResults" style="margin-top: 10px; padding: 10px; background: #1a1a1a; border-radius: 8px;"></div>
+        </div>
+    </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        function startSecureQuiz() {
+            // Store test user data securely in sessionStorage
+            const userData = {
+                name: 'João Silva',
+                email: 'joao@produtora.com',
+                company: 'Produtora XYZ',
+                phone: '11999999999',
+                timestamp: Date.now()
+            };
+            
+            try {
+                sessionStorage.setItem('quizUserData', JSON.stringify(userData));
+                console.log('Test user data stored securely');
+                
+                // Redirect to quiz
+                window.location.href = 'quiz/index.html';
+            } catch (error) {
+                alert('Error storing user data: ' + error.message);
+            }
+        }
+        
+        async function testSupabaseSaving() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = 'Testing Supabase connection...';
+            
+            try {
+                // Initialize Supabase client
+                const SUPABASE_URL = 'https://rqgvwtimooavcqhycycu.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxZ3Z3dGltb29hdmNxaHljeWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyODI5NjcsImV4cCI6MjA2Nzg1ODk2N30.5vF1CX6x_uxMOD8C3Uwyai2ro9mWDi4YwPHiS31POmA';
+                
+                const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                resultsDiv.innerHTML += '<br>✓ Supabase client initialized';
+                
+                // Test insert
+                const testData = {
+                    session_id: 'test_connection_' + Date.now(),
+                    question_number: 1,
+                    question_text: 'Test connection question?',
+                    answer_text: 'Test connection answer',
+                    points: 5,
+                    user_email: 'test@connection.com',
+                    user_name: 'Test Connection User',
+                    user_company: 'Test Connection Company'
+                };
+                
+                const { data, error } = await supabaseClient
+                    .from('vp_quiz_answers_progress')
+                    .insert(testData);
+                
+                if (error) {
+                    resultsDiv.innerHTML += '<br>✗ Error inserting test data: ' + error.message;
+                    if (error.details) resultsDiv.innerHTML += '<br>Details: ' + error.details;
+                    if (error.hint) resultsDiv.innerHTML += '<br>Hint: ' + error.hint;
+                } else {
+                    resultsDiv.innerHTML += '<br>✓ Test data inserted successfully';
+                    
+                    // Clean up test data
+                    const { error: deleteError } = await supabaseClient
+                        .from('vp_quiz_answers_progress')
+                        .delete()
+                        .eq('session_id', testData.session_id);
+                    
+                    if (deleteError) {
+                        resultsDiv.innerHTML += '<br>⚠ Could not clean up test data: ' + deleteError.message;
+                    } else {
+                        resultsDiv.innerHTML += '<br>✓ Test data cleaned up';
+                    }
+                }
+                
+            } catch (err) {
+                resultsDiv.innerHTML += '<br>✗ Exception: ' + err.message;
+            }
+        }
+        
+        // Add some styling
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Test page loaded. Open browser console to see debug information when testing the quiz.');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Quiz Real-time Saving</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 12px;
+        }
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .log {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Test Real-time Quiz Answer Saving</h1>
+        
+        <div>
+            <h3>Test Actions:</h3>
+            <button onclick="testLocalQuiz()">Test Quiz Locally (localStorage)</button>
+            <button onclick="testQuizWithSupabase()">Test Quiz with Supabase</button>
+            <button onclick="checkStoredData()">Check Stored Data</button>
+            <button onclick="clearTestData()">Clear Test Data</button>
+        </div>
+        
+        <div class="log" id="testLog"></div>
+    </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'https://rqgvwtimooavcqhycycu.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxZ3Z3dGltb29hdmNxaHljeWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyODI5NjcsImV4cCI6MjA2Nzg1ODk2N30.5vF1CX6x_uxMOD8C3Uwyai2ro9mWDi4YwPHiS31POmA';
+        
+        let supabaseClient;
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (error) {
+            log('Error initializing Supabase: ' + error.message);
+        }
+        
+        // Test session data
+        let testSessionId = 'test_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        function log(message) {
+            const logElement = document.getElementById('testLog');
+            logElement.textContent += new Date().toLocaleTimeString() + ': ' + message + '\\n';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        async function testLocalQuiz() {
+            log('=== Testing Local Quiz (localStorage) ===');
+            
+            // Simulate 3 quiz answers
+            const testAnswers = [
+                {
+                    session_id: testSessionId,
+                    question_number: 1,
+                    question_text: "Test question 1?",
+                    answer_text: "Test answer 1",
+                    points: 10,
+                    timestamp: new Date().toISOString(),
+                    user_data: {
+                        name: "Test User",
+                        email: "test@example.com",
+                        company: "Test Company"
+                    }
+                },
+                {
+                    session_id: testSessionId,
+                    question_number: 2,
+                    question_text: "Test question 2?",
+                    answer_text: "Test answer 2",
+                    points: 7,
+                    timestamp: new Date().toISOString(),
+                    user_data: {
+                        name: "Test User",
+                        email: "test@example.com",
+                        company: "Test Company"
+                    }
+                },
+                {
+                    session_id: testSessionId,
+                    question_number: 3,
+                    question_text: "Test question 3?",
+                    answer_text: "Test answer 3",
+                    points: 5,
+                    timestamp: new Date().toISOString(),
+                    user_data: {
+                        name: "Test User",
+                        email: "test@example.com",
+                        company: "Test Company"
+                    }
+                }
+            ];
+            
+            // Save each answer
+            for (let i = 0; i < testAnswers.length; i++) {
+                const answer = testAnswers[i];
+                log(`Saving answer ${i + 1} to localStorage...`);
+                
+                try {
+                    const storageKey = `quiz_progress_${testSessionId}`;
+                    const existingData = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                    existingData.push(answer);
+                    localStorage.setItem(storageKey, JSON.stringify(existingData));
+                    log(`✓ Answer ${i + 1} saved successfully`);
+                } catch (error) {
+                    log(`✗ Error saving answer ${i + 1}: ${error.message}`);
+                }
+                
+                // Simulate delay between answers
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            log('Local quiz test completed!');
+        }
+        
+        async function testQuizWithSupabase() {
+            log('=== Testing Quiz with Supabase ===');
+            
+            if (!supabaseClient) {
+                log('✗ Supabase not available');
+                return;
+            }
+            
+            // Test answers for Supabase
+            const testAnswers = [
+                {
+                    session_id: testSessionId + '_supabase',
+                    question_number: 1,
+                    question_text: "Supabase test question 1?",
+                    answer_text: "Supabase test answer 1",
+                    points: 10,
+                    user_email: "test.supabase@example.com",
+                    user_name: "Test Supabase User",
+                    user_company: "Test Supabase Company"
+                },
+                {
+                    session_id: testSessionId + '_supabase',
+                    question_number: 2,
+                    question_text: "Supabase test question 2?",
+                    answer_text: "Supabase test answer 2",
+                    points: 8,
+                    user_email: "test.supabase@example.com",
+                    user_name: "Test Supabase User",
+                    user_company: "Test Supabase Company"
+                }
+            ];
+            
+            for (let i = 0; i < testAnswers.length; i++) {
+                const answer = testAnswers[i];
+                log(`Saving answer ${i + 1} to Supabase...`);
+                
+                try {
+                    const { error } = await supabaseClient
+                        .from('vp_quiz_answers_progress')
+                        .upsert(answer, {
+                            onConflict: 'session_id,question_number'
+                        });
+                    
+                    if (error) {
+                        log(`✗ Error saving answer ${i + 1}: ${error.message}`);
+                    } else {
+                        log(`✓ Answer ${i + 1} saved to Supabase successfully`);
+                    }
+                } catch (error) {
+                    log(`✗ Exception saving answer ${i + 1}: ${error.message}`);
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            log('Supabase quiz test completed!');
+        }
+        
+        async function checkStoredData() {
+            log('=== Checking Stored Data ===');
+            
+            // Check localStorage
+            log('Local Storage data:');
+            const storageKey = `quiz_progress_${testSessionId}`;
+            const localData = localStorage.getItem(storageKey);
+            if (localData) {
+                const parsedData = JSON.parse(localData);
+                log(`Found ${parsedData.length} answers in localStorage`);
+                parsedData.forEach((answer, index) => {
+                    log(`  ${index + 1}. Q${answer.question_number}: ${answer.answer_text} (${answer.points} pts)`);
+                });
+            } else {
+                log('No local data found');
+            }
+            
+            // Check Supabase
+            if (supabaseClient) {
+                log('\\nSupabase data:');
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('vp_quiz_answers_progress')
+                        .select('*')
+                        .eq('session_id', testSessionId + '_supabase')
+                        .order('question_number');
+                    
+                    if (error) {
+                        log(`Error reading from Supabase: ${error.message}`);
+                    } else if (data && data.length > 0) {
+                        log(`Found ${data.length} answers in Supabase`);
+                        data.forEach((answer, index) => {
+                            log(`  ${index + 1}. Q${answer.question_number}: ${answer.answer_text} (${answer.points} pts)`);
+                        });
+                    } else {
+                        log('No Supabase data found');
+                    }
+                } catch (error) {
+                    log(`Exception reading from Supabase: ${error.message}`);
+                }
+            }
+        }
+        
+        async function clearTestData() {
+            log('=== Clearing Test Data ===');
+            
+            // Clear localStorage
+            const storageKey = `quiz_progress_${testSessionId}`;
+            localStorage.removeItem(storageKey);
+            log('localStorage cleared');
+            
+            // Clear Supabase data
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('vp_quiz_answers_progress')
+                        .delete()
+                        .eq('session_id', testSessionId + '_supabase');
+                    
+                    if (error) {
+                        log(`Error clearing Supabase: ${error.message}`);
+                    } else {
+                        log('Supabase test data cleared');
+                    }
+                } catch (error) {
+                    log(`Exception clearing Supabase: ${error.message}`);
+                }
+            }
+            
+            log('Test data cleanup completed!');
+        }
+        
+        // Initialize
+        log('Test environment initialized');
+        log('Session ID: ' + testSessionId);
+        if (supabaseClient) {
+            log('Supabase client ready');
+        } else {
+            log('Supabase client not available - will use localStorage only');
+        }
+    </script>
+</body>
+</html>
