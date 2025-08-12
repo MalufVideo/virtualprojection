@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug QR | Virtual Projection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Debug QR Validation</h1>
+        
+        <!-- Manual QR Test -->
+        <div class="bg-gray-800 p-6 rounded-lg mb-8">
+            <h2 class="text-xl font-bold mb-4">Test QR Code</h2>
+            <div class="mb-4">
+                <label class="block mb-2">QR Code Data:</label>
+                <input type="text" id="qrInput" placeholder="e.g. 21|John Doe" 
+                       class="w-full p-3 bg-gray-700 rounded border border-gray-600 text-white">
+            </div>
+            <button onclick="testQR()" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded">
+                Test QR Code
+            </button>
+        </div>
+
+        <!-- Attendee ID Test -->
+        <div class="bg-gray-800 p-6 rounded-lg mb-8">
+            <h2 class="text-xl font-bold mb-4">Test Attendee by ID</h2>
+            <div class="mb-4">
+                <label class="block mb-2">Attendee ID:</label>
+                <input type="text" id="attendeeId" placeholder="e.g. 21" 
+                       class="w-full p-3 bg-gray-700 rounded border border-gray-600 text-white">
+            </div>
+            <button onclick="testAttendee()" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded">
+                Test Attendee
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="bg-gray-800 p-6 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">Results</h2>
+            <pre id="resultContent" class="text-sm text-gray-300 overflow-auto"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function testQR() {
+            const qrData = document.getElementById('qrInput').value;
+            if (!qrData) {
+                alert('Please enter QR data');
+                return;
+            }
+
+            try {
+                const response = await fetch('/validate-qr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ qrData })
+                });
+
+                const result = await response.json();
+                document.getElementById('resultContent').textContent = 
+                    JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('resultContent').textContent = 
+                    'Error: ' + error.message;
+            }
+        }
+
+        async function testAttendee() {
+            const id = document.getElementById('attendeeId').value;
+            if (!id) {
+                alert('Please enter attendee ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/debug-qr/${id}`);
+                const result = await response.json();
+                document.getElementById('resultContent').textContent = 
+                    JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('resultContent').textContent = 
+                    'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

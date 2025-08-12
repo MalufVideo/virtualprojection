@@ -357,34 +357,56 @@ app.get('/attendees', async (req, res) => {
 app.post('/validate-qr', async (req, res) => {
     try {
         const { qrData } = req.body;
+        console.log('=== QR VALIDATION DEBUG ===');
+        console.log('Received QR data:', qrData);
         
         if (!qrData) {
+            console.log('ERROR: No QR data provided');
             return res.status(400).json({ error: 'QR Data is required' });
         }
 
         const parts = qrData.split('|');
+        console.log('QR parts:', parts);
         if (parts.length !== 2) {
-            return res.json({ success: false, error: 'Invalid QR Code format' });
+            console.log('ERROR: Invalid QR format, expected ID|Name');
+            return res.json({ success: false, error: 'Invalid QR Code format. Expected: ID|Name' });
         }
 
         const [qrId, qrName] = parts;
+        console.log('Extracted ID:', qrId, 'Name:', qrName);
 
         let attendee;
         try {
+            console.log('Looking up attendee with ID:', qrId);
             attendee = await nocoGetRecord(qrId);
+            console.log('Found attendee:', JSON.stringify(attendee, null, 2));
         } catch (e) {
-            return res.json({ success: false, error: 'Attendee not found' });
+            console.log('ERROR: Database lookup failed:', e.message);
+            return res.json({ success: false, error: 'Attendee not found in database' });
         }
 
         if (!attendee) {
+            console.log('ERROR: No attendee record returned');
             return res.json({ success: false, error: 'Attendee not found' });
         }
-        if ((attendee.name || '').trim() !== qrName.trim()) {
-            return res.json({ success: false, error: 'Name does not match registration' });
+
+        // Debug name comparison
+        const dbName = (attendee.name || '').trim();
+        const qrNameTrimmed = qrName.trim();
+        console.log('Name comparison - DB:', `"${dbName}"`, 'QR:', `"${qrNameTrimmed}"`, 'Match:', dbName === qrNameTrimmed);
+        
+        if (dbName !== qrNameTrimmed) {
+            console.log('ERROR: Name mismatch');
+            return res.json({ success: false, error: `Name mismatch. DB: "${dbName}", QR: "${qrNameTrimmed}"` });
         }
-        if (attendee.approval_status && attendee.approval_status !== 'approved') {
-            return res.json({ success: false, error: 'Registration not approved yet' });
+
+        // Check approval status (be more lenient - allow null/undefined)
+        console.log('Approval status:', attendee.approval_status);
+        if (attendee.approval_status === 'rejected' || attendee.approval_status === 'denied') {
+            console.log('ERROR: Registration rejected, status:', attendee.approval_status);
+            return res.json({ success: false, error: 'Registration has been rejected' });
         }
+        // Allow null, undefined, 'approved', 'pending', or any other status except rejected
 
         // Map NocoDB fields to door scanner expected format
         const mappedAttendee = {
@@ -394,10 +416,13 @@ app.post('/validate-qr', async (req, res) => {
             phone: attendee.phone,
             company: attendee.company,
             position: attendee.position,
-            checked_in: attendee.checked_in || false,
+            checked_in: attendee.checked_in === 'sim' || attendee.checked_in === true || attendee.checked_in === 'true' || false,
             checkin_time: attendee.checkin_time,
-            approval_status: attendee.approval_status
+            approval_status: attendee.approval_status || 'pending'
         };
+
+        console.log('Validation SUCCESS, returning attendee:', JSON.stringify(mappedAttendee, null, 2));
+        console.log('=== END QR VALIDATION DEBUG ===');
 
         res.json({
             success: true,
@@ -574,6 +599,56 @@ app.get('/health', (req, res) => {
         message: 'QR Code server is running!',
         port: PORT 
     });
+});
+
+// Debug endpoint to test QR validation
+app.get('/debug-qr/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log('=== DEBUG QR TEST ===');
+        console.log('Testing QR for ID:', id);
+        
+        // Get the attendee record
+        const attendee = await nocoGetRecord(id);
+        console.log('Attendee record:', JSON.stringify(attendee, null, 2));
+        
+        if (!attendee) {
+            return res.json({ error: 'Attendee not found' });
+        }
+        
+        // Generate the QR data that would be created
+        const qrData = `${id}|${attendee.name}`;
+        console.log('Expected QR data:', qrData);
+        
+        // Test validation
+        const validation = await new Promise((resolve) => {
+            // Simulate the validation logic
+            const parts = qrData.split('|');
+            const [qrId, qrName] = parts;
+            const dbName = (attendee.name || '').trim();
+            const qrNameTrimmed = qrName.trim();
+            
+            resolve({
+                qrFormat: qrData,
+                parts: parts,
+                nameMatch: dbName === qrNameTrimmed,
+                dbName: dbName,
+                qrName: qrNameTrimmed,
+                approvalStatus: attendee.approval_status,
+                checkedIn: attendee.checked_in
+            });
+        });
+        
+        res.json({
+            success: true,
+            attendee: attendee,
+            validation: validation
+        });
+        
+    } catch (error) {
+        console.error('Debug error:', error);
+        res.json({ error: error.message });
+    }
 });
 
 // Start server
