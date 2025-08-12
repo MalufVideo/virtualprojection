@@ -45,8 +45,8 @@ async function nocoGetRecord(id) {
 }
 
 async function nocoUpdateRecord(id, payload) {
-    // Use production webhook URL for updating QR info
-    const webhookUrl = 'https://n8n.onav.com.br/webhook/1a527646-c06c-46b6-a7a0-1331072257ee';
+    // Use webhook URL from environment variable for updating QR info
+    const webhookUrl = process.env.WEBHOOK_QR_UPDATE || 'https://n8n.onav.com.br/webhook/1a527646-c06c-46b6-a7a0-1331072257ee';
     
     try {
         console.log('Calling QR update webhook with:', { Id: id, ...payload });
@@ -593,8 +593,8 @@ app.post('/update-qr', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Missing required fields' });
         }
 
-        // Call the n8n QR webhook using PATCH method for production
-        const webhookUrl = 'https://n8n.onav.com.br/webhook/1a527646-c06c-46b6-a7a0-1331072257ee';
+        // Call the n8n QR webhook using PATCH method 
+        const webhookUrl = process.env.WEBHOOK_QR_UPDATE || 'https://n8n.onav.com.br/webhook/1a527646-c06c-46b6-a7a0-1331072257ee';
         console.log('Calling QR update webhook from client with:', { attendee_id, qr_data, qr_code_url, name, email });
         const { data } = await axios.patch(webhookUrl, {
             Id: attendee_id,  // Use Id for NocoDB record ID
