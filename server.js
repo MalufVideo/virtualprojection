@@ -386,9 +386,22 @@ app.post('/validate-qr', async (req, res) => {
             return res.json({ success: false, error: 'Registration not approved yet' });
         }
 
+        // Map NocoDB fields to door scanner expected format
+        const mappedAttendee = {
+            id: attendee.Id || attendee.id,
+            name: attendee.name,
+            email: attendee.email,
+            phone: attendee.phone,
+            company: attendee.company,
+            position: attendee.position,
+            checked_in: attendee.checked_in || false,
+            checkin_time: attendee.checkin_time,
+            approval_status: attendee.approval_status
+        };
+
         res.json({
             success: true,
-            attendee: attendee,
+            attendee: mappedAttendee,
             message: 'Valid QR Code!'
         });
 
@@ -410,6 +423,30 @@ app.post('/checkin', async (req, res) => {
             return res.status(400).json({ error: 'Attendee ID is required' });
         }
 
+        // Use dedicated check-in webhook if configured
+        const checkinWebhook = process.env.WEBHOOK_CHECKIN;
+        if (checkinWebhook) {
+            try {
+                console.log('Calling check-in webhook for attendee:', attendeeId);
+                const response = await axios.patch(checkinWebhook, {
+                    Id: attendeeId,
+                    checked_in: true,
+                    checkin_time: new Date().toISOString()
+                });
+                console.log('Check-in webhook response:', response.data);
+                
+                return res.json({
+                    success: true,
+                    attendee: response.data,
+                    message: 'Check-in confirmed successfully!',
+                    via: 'webhook'
+                });
+            } catch (webhookError) {
+                console.warn('Check-in webhook failed, falling back to direct update:', webhookError?.response?.data || webhookError.message);
+            }
+        }
+
+        // Fallback to direct NocoDB update
         const updated = await nocoUpdateRecord(attendeeId, { checked_in: true, checkin_time: new Date().toISOString() });
 
         if (!updated || updated.id === undefined) {
@@ -419,7 +456,8 @@ app.post('/checkin', async (req, res) => {
         res.json({
             success: true,
             attendee: updated,
-            message: 'Check-in confirmed successfully!'
+            message: 'Check-in confirmed successfully!',
+            via: 'direct'
         });
 
     } catch (error) {

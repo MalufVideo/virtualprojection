@@ -27,8 +27,8 @@
                 <p class="text-3xl font-bold text-green-400" id="qrGenerated">0</p>
             </div>
             <div class="bg-gray-800 p-6 rounded-lg">
-                <h3 class="text-xl font-semibold mb-2">E-mails Enviados</h3>
-                <p class="text-3xl font-bold text-purple-400" id="emailsSent">0</p>
+                <h3 class="text-xl font-semibold mb-2">Check-ins Realizados</h3>
+                <p class="text-3xl font-bold text-purple-400" id="checkedInCount">0</p>
             </div>
         </div>
         
@@ -103,7 +103,7 @@
         function updateStats() {
             document.getElementById('totalAttendees').textContent = attendeesData.length;
             document.getElementById('qrGenerated').textContent = attendeesData.filter(a => a.qr_code_url).length;
-            document.getElementById('emailsSent').textContent = attendeesData.filter(a => a.confirmation_sent).length;
+            document.getElementById('checkedInCount').textContent = attendeesData.filter(a => a.checked_in).length;
         }
 
         // Update attendees list
@@ -135,9 +135,9 @@
                         }
                     </td>
                     <td class="py-3 px-4">
-                        ${guest.approval_status === 'approved' ?
-                            '<span class="text-green-400">Aprovado</span>' :
-                            '<span class="text-yellow-400">Aguardando</span>'
+                        ${guest.checked_in ?
+                            '<span class="text-green-400">✓ Confirmado</span>' :
+                            '<span class="text-gray-400">Pendente</span>'
                         }
                     </td>
                     <td class="py-3 px-4">
