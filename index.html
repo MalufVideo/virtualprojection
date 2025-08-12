@@ -447,7 +447,8 @@
             };
             
             try {
-                const response = await fetch('https://n8n.onav.com.br/webhook/55ed662e-b91d-4578-b912-f7901ba71623', {
+                // Use server endpoint instead of direct n8n webhook
+                const response = await fetch('/generate-qr', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -456,25 +457,21 @@
                 });
 
                 const result = await response.json();
-                console.log('Webhook response:', result);
+                console.log('Server response:', result);
 
-                // Handle array response from n8n webhook
-                const attendeeData = Array.isArray(result) ? result[0] : result;
-                const attendeeId = attendeeData?.Id || attendeeData?.id || 'unknown';
-
-                if (attendeeData && attendeeId !== 'unknown') {
+                if (result.success && result.attendee_id) {
                     const successMessage = document.getElementById('successMessage');
                     successMessage.classList.remove('hidden');
                     this.reset();
                     
-                    // Redirect to thank you page with user data
+                    // Redirect to thank you page with user data and attendee_id
                     const params = new URLSearchParams({
                         nome: data.name,
                         email: data.email,
-                        telefone: data.phone,
-                        empresa: data.company,
-                        cargo: data.position,
-                        attendee_id: attendeeId
+                        telefone: data.phone || '',
+                        empresa: data.company || '',
+                        cargo: data.position || '',
+                        attendee_id: result.attendee_id
                     });
                     window.location.href = `thankyou.html?${params}`;
                 } else {

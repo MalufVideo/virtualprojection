@@ -129,7 +129,7 @@
                     <div>
                         <i class="fas fa-calendar-alt text-2xl text-pink-400 mb-2"></i>
                         <h4 class="font-semibold">Data e Hora</h4>
-                        <p class="text-gray-300">26 de agosto, às 16h</p>
+                        <p class="text-gray-300">26 de agosto, às 19h</p>
                     </div>
                     <div>
                         <i class="fas fa-map-marker-alt text-2xl text-purple-400 mb-2"></i>
@@ -215,12 +215,18 @@
             // Only generate QR if we have valid user data and haven't generated one yet
             if (userName && userName !== 'Participante' && userEmail && attendeeId && !qrGenerated) {
                 qrGenerated = true;
-                // Generate QR using attendee ID and call QR webhook
+                console.log('Generating QR with attendee ID from server:', attendeeId);
+                // Generate QR using attendee ID from server
                 generateQRWithWebhook(attendeeId, userName, userEmail);
             } else {
+                console.log('Missing data or fallback QR generation:', { userName, userEmail, attendeeId });
                 const qrContainer = document.getElementById('qrcode');
                 if (qrContainer && !qrGenerated) {
-                    qrContainer.innerHTML = '<p class="text-red-400 text-sm">Dados de usuário não encontrados</p>';
+                    if (!attendeeId) {
+                        qrContainer.innerHTML = '<p class="text-red-400 text-sm">ID do participante não encontrado</p>';
+                    } else {
+                        qrContainer.innerHTML = '<p class="text-red-400 text-sm">Dados de usuário não encontrados</p>';
+                    }
                 }
             }
         });
@@ -237,7 +243,7 @@
 
             qrContainer.innerHTML = '<p class="text-gray-400 text-sm">Gerando QR Code...</p>';
 
-            // Generate QR data and call webhook
+            // Generate QR data using the server-provided attendee ID
             const qrData = `${attendeeId}|${name}`;
             
             // Generate QR image first
@@ -262,37 +268,41 @@
                 qrWrapper.appendChild(idMsg);
                 
                 const statusMsg = document.createElement('p');
-                statusMsg.className = 'text-xs text-green-400 mt-1';
-                statusMsg.textContent = '✓ QR Code gerado!';
+                statusMsg.className = 'text-xs text-blue-400 mt-1';
+                statusMsg.textContent = '⏳ Salvando na base...';
                 qrWrapper.appendChild(statusMsg);
                 
                 qrContainer.appendChild(qrWrapper);
                 
-                // Call QR webhook to update database in the background (don't wait for response)
-                fetch('https://n8n.onav.com.br/webhook-test/1a527646-c06c-46b6-a7a0-1331072257ee', {
-                    method: 'PATCH',
+                // Call update webhook via server proxy to avoid CORS
+                fetch('/update-qr', {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         attendee_id: attendeeId,
                         qr_data: qrData,
-                        qr_code_url: `data:image/png;base64,${canvas.toDataURL().split(',')[1]}`,
+                        qr_code_url: `${window.location.origin}/qr/VP-${attendeeId}.png`,
                         name: name,
                         email: email
                     })
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('QR webhook response:', data);
+                    console.log('QR update webhook response:', data);
                     if (data.success) {
                         statusMsg.textContent = '✓ QR Code salvo na base!';
                         statusMsg.className = 'text-xs text-green-400 mt-1';
+                    } else {
+                        statusMsg.textContent = '✓ QR gerado (base não atualizada)';
+                        statusMsg.className = 'text-xs text-yellow-400 mt-1';
                     }
                 })
                 .catch(error => {
-                    console.warn('QR webhook failed (background):', error);
-                    // Don't change the UI - QR is already displayed successfully
+                    console.warn('QR update webhook failed:', error);
+                    statusMsg.textContent = '✓ QR gerado (base não atualizada)';
+                    statusMsg.className = 'text-xs text-yellow-400 mt-1';
                 });
             } else {
                 qrContainer.innerHTML = '<p class="text-red-400 text-sm">Biblioteca QR não carregada</p>';
