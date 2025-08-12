@@ -334,22 +334,47 @@ app.post('/save-qr', upload.single('qrImage'), (req, res) => {
 // Get attendees list
 app.get('/attendees', async (req, res) => {
     try {
-        // Prefer n8n admin list webhook if configured
-        if (WEBHOOK_ADMIN_LIST) {
-            const { data } = await axios.get(WEBHOOK_ADMIN_LIST);
-            if (data && data.success && Array.isArray(data.guests)) {
-                return res.json({ success: true, attendees: data.guests });
+        console.log('=== ATTENDEES ENDPOINT DEBUG ===');
+        console.log('Fetching attendees list...');
+        
+        // Try direct NocoDB first
+        try {
+            console.log('Trying direct NocoDB connection...');
+            const list = await nocoListRecords();
+            console.log('NocoDB returned:', list?.length || 0, 'records');
+            if (list && list.length >= 0) {
+                console.log('First record sample:', JSON.stringify(list[0] || null, null, 2));
+                return res.json({ success: true, attendees: list });
             }
-            if (Array.isArray(data)) {
-                return res.json({ success: true, attendees: data });
+        } catch (nocoError) {
+            console.error('NocoDB direct access failed:', nocoError?.response?.data || nocoError.message);
+        }
+        
+        // Fallback to n8n admin list webhook if configured
+        if (WEBHOOK_ADMIN_LIST && WEBHOOK_ADMIN_LIST !== 'https://n8n.onav.com.br/webhook/your-admin-list-webhook') {
+            try {
+                console.log('Trying n8n admin webhook:', WEBHOOK_ADMIN_LIST);
+                const { data } = await axios.get(WEBHOOK_ADMIN_LIST);
+                console.log('Webhook returned:', data);
+                
+                if (data && data.success && Array.isArray(data.guests)) {
+                    return res.json({ success: true, attendees: data.guests });
+                }
+                if (Array.isArray(data)) {
+                    return res.json({ success: true, attendees: data });
+                }
+            } catch (webhookError) {
+                console.error('n8n webhook failed:', webhookError?.response?.data || webhookError.message);
             }
         }
-        // Fallback to direct NocoDB
-        const list = await nocoListRecords();
-        res.json({ success: true, attendees: list });
+        
+        // If both fail, return empty list instead of error
+        console.log('Both methods failed, returning empty list');
+        res.json({ success: true, attendees: [] });
+        
     } catch (error) {
-        console.error('Error reading attendees:', error?.response?.data || error.message);
-        res.status(500).json({ error: 'Error reading attendees list' });
+        console.error('Attendees endpoint error:', error?.response?.data || error.message);
+        res.status(500).json({ error: 'Error reading attendees list', details: error.message });
     }
 });
 
