@@ -20,7 +20,7 @@ const BASE_PUBLIC_URL = process.env.BASE_PUBLIC_URL || 'http://localhost:3000';
 // NocoDB config
 const NOCODB_API_URL = process.env.NOCODB_API_URL || 'https://nocodb.onav.com.br';
 const NOCODB_TABLE_ID = process.env.NOCODB_TABLE_ID || 'mut6ix6ios3kpvf';
-const NOCODB_API_TOKEN = process.env.NOCODB_API_TOKEN || '';
+const NOCODB_API_TOKEN = process.env.NOCODB_API_TOKEN || 'uTPMEFUyoc_CCiXEy1OD0scjwO1gL7Dqoi8X_nNp';
 
 // Optional n8n webhooks (if you prefer using n8n for updates instead of direct NocoDB)
 const WEBHOOK_UPDATE_RECORD = process.env.WEBHOOK_UPDATE_RECORD || '';
@@ -28,7 +28,7 @@ const WEBHOOK_UPDATE_RECORD = process.env.WEBHOOK_UPDATE_RECORD || '';
 // Axios instance for NocoDB
 const noco = axios.create({
     baseURL: `${NOCODB_API_URL}/api/v2`,
-    headers: NOCODB_API_TOKEN ? { 'xc-token': NOCODB_API_TOKEN } : {},
+    headers: { 'xc-token': NOCODB_API_TOKEN },
 });
 
 async function nocoListRecords() {
