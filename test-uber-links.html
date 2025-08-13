@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Links do Uber | Virtual Projection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Space Grotesk', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-6 py-12 max-w-2xl">
+        <h1 class="text-4xl font-bold mb-8 text-center">
+            Teste - Links do Uber
+        </h1>
+        
+        <div class="bg-gray-800 p-6 rounded-lg mb-8">
+            <h2 class="text-xl font-semibold mb-4">Destino do Evento</h2>
+            <div class="bg-gray-700 p-4 rounded mb-4">
+                <strong>Endereço:</strong> Rua Plácido Vieira 43, Santo Amaro, São Paulo - SP
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Test 1: Basic address format -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold mb-3 text-blue-400">Teste 1: Endereço Formatado</h3>
+                <p class="text-gray-300 mb-4">
+                    Link básico com endereço formatado usando apenas formatted_address
+                </p>
+                <button 
+                    id="uberBtn1" 
+                    class="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg border border-gray-600 transition-colors"
+                    onclick="testUberLink1()"
+                >
+                    🚗 Chamar Uber - Endereço Formatado
+                </button>
+                <div class="mt-2 text-xs text-gray-400 break-all" id="url1"></div>
+            </div>
+
+            <!-- Test 2: With nickname -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold mb-3 text-green-400">Teste 2: Com Nome Personalizado</h3>
+                <p class="text-gray-300 mb-4">
+                    Link com nickname personalizado "On Projeções" + endereço formatado
+                </p>
+                <button 
+                    id="uberBtn2" 
+                    class="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg border border-gray-600 transition-colors"
+                    onclick="testUberLink2()"
+                >
+                    🚗 Chamar Uber - On Projeções
+                </button>
+                <div class="mt-2 text-xs text-gray-400 break-all" id="url2"></div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-blue-900 border border-blue-700 p-6 rounded-lg mt-8">
+            <h3 class="text-lg font-semibold mb-3 text-blue-300">📱 Como Testar</h3>
+            <ul class="space-y-2 text-blue-200">
+                <li>• Clique nos botões para abrir os links do Uber</li>
+                <li>• Teste em dispositivos móveis para melhor experiência</li>
+                <li>• Verifique se o endereço de destino está correto</li>
+                <li>• Confirme se a localização atual é detectada automaticamente</li>
+            </ul>
+        </div>
+
+        <!-- Debug Info -->
+        <div class="bg-gray-800 p-6 rounded-lg mt-8">
+            <h3 class="text-lg font-semibold mb-3 text-purple-400">🔧 Informações de Debug</h3>
+            <div class="space-y-2 text-sm text-gray-300">
+                <div><strong>User Agent:</strong> <span id="userAgent"></span></div>
+                <div><strong>Plataforma:</strong> <span id="platform"></span></div>
+                <div><strong>Dimensões:</strong> <span id="dimensions"></span></div>
+                <div><strong>Suporte a Geolocalização:</strong> <span id="geoSupport"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Uber link 1: Basic formatted address
+        function testUberLink1() {
+            const url = 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP';
+            document.getElementById('url1').textContent = 'URL: ' + url;
+            
+            console.log('Opening Uber Link 1:', url);
+            
+            try {
+                window.open(url, '_blank');
+            } catch (error) {
+                console.error('Error opening Uber link 1:', error);
+                alert('Erro ao abrir link do Uber. Verifique o console para mais detalhes.');
+            }
+        }
+
+        // Uber link 2: With nickname
+        function testUberLink2() {
+            const url = 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[nickname]=On+Proje%C3%A7%C3%B5es&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP';
+            document.getElementById('url2').textContent = 'URL: ' + url;
+            
+            console.log('Opening Uber Link 2:', url);
+            
+            try {
+                window.open(url, '_blank');
+            } catch (error) {
+                console.error('Error opening Uber link 2:', error);
+                alert('Erro ao abrir link do Uber. Verifique o console para mais detalhes.');
+            }
+        }
+
+        // Initialize debug info
+        function initDebugInfo() {
+            document.getElementById('userAgent').textContent = navigator.userAgent;
+            document.getElementById('platform').textContent = navigator.platform;
+            document.getElementById('dimensions').textContent = `${window.innerWidth}x${window.innerHeight}`;
+            document.getElementById('geoSupport').textContent = navigator.geolocation ? 'Sim' : 'Não';
+        }
+
+        // Display URLs on page load
+        function displayUrls() {
+            const url1 = 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP';
+            const url2 = 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[nickname]=On+Proje%C3%A7%C3%B5es&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP';
+            
+            document.getElementById('url1').textContent = 'URL: ' + url1;
+            document.getElementById('url2').textContent = 'URL: ' + url2;
+        }
+
+        // Initialize page
+        window.addEventListener('load', function() {
+            initDebugInfo();
+            displayUrls();
+        });
+    </script>
+</body>
+</html>

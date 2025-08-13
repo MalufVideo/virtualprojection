@@ -208,15 +208,19 @@
 
         // Download attendees list as CSV
         function downloadList() {
-            const csv = ['ID,Nome,E-mail,Data/Hora,QR Code,E-mail Enviado'];
+            const csv = ['ID,Nome,E-mail,Empresa,Telefone,Cargo,Data/Hora,QR Code,E-mail Enviado,Status Check-in'];
             attendeesData.forEach(attendee => {
                 csv.push([
                     attendee.id,
-                    attendee.name,
-                    attendee.email,
-                    attendee.created_at,
+                    attendee.name || '',
+                    attendee.email || '',
+                    attendee.company || '',
+                    attendee.phone || '',
+                    attendee.position || '',
+                    attendee.created_at || '',
                     attendee.qr_code_url || '',
-                    attendee.confirmation_sent ? 'Sim' : 'Não'
+                    attendee.confirmation_sent ? 'Sim' : 'Não',
+                    attendee.checked_in ? 'Confirmado' : 'Pendente'
                 ].join(','));
             });
 
