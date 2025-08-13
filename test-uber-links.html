@@ -147,7 +147,7 @@
 
         // Test 3: Using latitude and longitude coordinates
         function testUberLink3() {
-            const url = 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=-23.6515&dropoff[longitude]=-46.7048&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP';
+            const url = 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=-23.648191365049588&dropoff[longitude]=-46.712223587902464&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP';
             document.getElementById('url3').textContent = 'URL: ' + url;
             console.log('Opening Uber Link 3:', url);
             window.open(url, '_blank');
@@ -163,7 +163,7 @@
 
         // Test 5: With nickname and coordinates
         function testUberLink5() {
-            const url = 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[nickname]=On+Proje%C3%A7%C3%B5es&dropoff[latitude]=-23.6515&dropoff[longitude]=-46.7048&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP';
+            const url = 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[nickname]=On+Proje%C3%A7%C3%B5es&dropoff[latitude]=-23.648191365049588&dropoff[longitude]=-46.712223587902464&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP';
             document.getElementById('url5').textContent = 'URL: ' + url;
             console.log('Opening Uber Link 5:', url);
             window.open(url, '_blank');
@@ -182,9 +182,9 @@
             const urls = [
                 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP',
                 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP',
-                'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=-23.6515&dropoff[longitude]=-46.7048&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP',
+                'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=-23.648191365049588&dropoff[longitude]=-46.712223587902464&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP',
                 'https://uber.com/go/?pickup=my_location&dropoff=-23.6515,-46.7048',
-                'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[nickname]=On+Proje%C3%A7%C3%B5es&dropoff[latitude]=-23.6515&dropoff[longitude]=-46.7048&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP'
+                'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[nickname]=On+Proje%C3%A7%C3%B5es&dropoff[latitude]=-23.648191365049588&dropoff[longitude]=-46.712223587902464&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP'
             ];
             
             urls.forEach((url, index) => {
