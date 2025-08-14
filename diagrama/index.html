@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama de Configuração AV - Estúdio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e4e4e4;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00d4ff;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .diagram-area {
+            position: relative;
+            height: 1100px;
+            background: #2a2a2a;
+            background-image: 
+                radial-gradient(circle at 1px 1px, #404040 1px, transparent 0);
+            background-size: 30px 30px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #404040;
+            margin-bottom: 220px;
+        }
+
+        .equipment {
+            position: absolute;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid #555;
+            backdrop-filter: blur(10px);
+        }
+
+        .equipment:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.2);
+            border-color: #00d4ff;
+        }
+
+        .server {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #00d4ff;
+            width: 220px;
+            height: 140px;
+            border-color: #00d4ff;
+        }
+
+        .vx4-1 {
+            top: 80px;
+            left: 400px;
+        }
+
+        .nvidia-rtx {
+            top: 300px;
+            left: 400px;
+        }
+
+        .vx4-2 {
+            top: 520px;
+            left: 400px;
+        }
+
+        .projector {
+            background: linear-gradient(135deg, #2d1b69 0%, #11998e 50%, #38ef7d 100%);
+            color: #ffffff;
+            width: 240px;
+            height: 120px;
+            top: 80px;
+            right: 80px;
+            border-color: #38ef7d;
+        }
+
+        .led-wall {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: #ffffff;
+            width: 180px;
+            height: 100px;
+            border-color: #f093fb;
+        }
+
+        .mx40-1 {
+            top: 520px;
+            right: 80px;
+        }
+
+        .mx40-2 {
+            top: 640px;
+            right: 80px;
+        }
+
+        .xr-stage {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            color: #2d1b69;
+            width: 160px;
+            height: 100px;
+            border-color: #ff9a9e;
+        }
+
+        .xr-1 {
+            top: 790px;
+            right: 80px;
+        }
+
+        .xr-2 {
+            top: 910px;
+            right: 80px;
+        }
+
+        .camera {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 50%, #8e44ad 100%);
+            color: #ffffff;
+            width: 200px;
+            height: 120px;
+            border-color: #e74c3c;
+        }
+
+        .red-camera {
+            top: 300px;
+            left: 80px;
+        }
+
+        .nvidia {
+            background: linear-gradient(135deg, #76b900 0%, #5d9500 50%, #4a7700 100%);
+            color: #ffffff;
+            width: 220px;
+            height: 140px;
+            border-color: #76b900;
+        }
+
+        .processor {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+            color: #ecf0f1;
+            width: 180px;
+            height: 100px;
+            border-color: #34495e;
+        }
+
+        .megapixel {
+            top: 250px;
+            right: 80px;
+        }
+
+        .kinoflo {
+            top: 370px;
+            right: 80px;
+        }
+
+        .equipment h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .equipment p {
+            font-size: 0.85rem;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .outputs {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .output {
+            width: 18px;
+            height: 18px;
+            background: radial-gradient(circle, #00ff88, #00cc66);
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.8), inset 0 1px 0 rgba(255,255,255,0.3);
+            position: relative;
+        }
+
+        .output::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: #ffffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .inputs {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .input {
+            width: 18px;
+            height: 18px;
+            background: radial-gradient(circle, #ff4757, #c44569);
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 15px rgba(255, 71, 87, 0.8), inset 0 1px 0 rgba(255,255,255,0.3);
+            position: relative;
+        }
+
+        .input::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: #ffffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .connection {
+            position: absolute;
+            height: 6px;
+            border-radius: 3px;
+            z-index: 10;
+            opacity: 0.9;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+            overflow: visible;
+        }
+
+        .connection.dp-fiber {
+            background: linear-gradient(90deg, #00ff88 0%, #ff4757 100%);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.6), 0 0 40px rgba(255, 71, 87, 0.4);
+        }
+
+        .connection.hdmi {
+            background: linear-gradient(90deg, #3742fa 0%, #ff6348 100%);
+            box-shadow: 0 0 20px rgba(55, 66, 250, 0.6), 0 0 40px rgba(255, 99, 72, 0.4);
+        }
+
+        .connection.sdi {
+            background: linear-gradient(90deg, #e74c3c 0%, #f39c12 100%);
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.6), 0 0 40px rgba(243, 156, 18, 0.4);
+        }
+
+        .connection::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            right: -8px;
+            width: 0;
+            height: 0;
+            border-left: 12px solid;
+            border-top: 7px solid transparent;
+            border-bottom: 7px solid transparent;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.8));
+        }
+
+        .connection.dp-fiber::before {
+            border-left-color: #ff4757;
+        }
+
+        .connection.hdmi::before {
+            border-left-color: #ff6348;
+        }
+
+        .connection.sdi::before {
+            border-left-color: #f39c12;
+        }
+
+        .connection-label {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            color: #00d4ff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            z-index: 15;
+            border: 1px solid #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(30,30,30,0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border: 1px solid #555;
+            backdrop-filter: blur(10px);
+        }
+
+        .legend h4 {
+            margin-bottom: 15px;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #e4e4e4;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 6px;
+            margin-right: 15px;
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .dp-fiber { 
+            background: linear-gradient(90deg, #00ff88, #ff4757);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+        .hdmi { 
+            background: linear-gradient(90deg, #3742fa, #ff6348);
+            box-shadow: 0 0 15px rgba(55, 66, 250, 0.4);
+        }
+        .sdi { 
+            background: linear-gradient(90deg, #e74c3c, #f39c12);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .connection.active {
+            animation: pulse 2s infinite;
+        }
+
+        .info-panel {
+            position: relative;
+            margin-top: 20px;
+            background: rgba(30,30,30,0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            width: 100%;
+            border: 1px solid #555;
+            backdrop-filter: blur(10px);
+            display: flex;
+            gap: 40px;
+        }
+
+        .info-panel h4 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .info-panel ul {
+            list-style: none;
+            font-size: 0.9rem;
+        }
+
+        .info-panel li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+            color: #e4e4e4;
+            line-height: 1.4;
+        }
+
+        .info-panel li::before {
+            content: '▶';
+            color: #00ff88;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+        }
+
+        .connections-column {
+            flex: 1;
+        }
+
+        .cables-column {
+            flex: 1;
+        }
+
+        .nav-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(30,30,30,0.95);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #00d4ff;
+            text-decoration: none;
+            border: 1px solid #00d4ff;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="genlock.html" class="nav-link">Diagrama Genlock →</a>
+        <h1>Diagrama de Configuração AV do Estúdio</h1>
+        
+        <div class="diagram-area">
+            <!-- Red V-Raptor X Camera -->
+            <div class="equipment camera red-camera">
+                <h3>Red V-Raptor X</h3>
+                <p>Câmera</p>
+                <div class="outputs">
+                    <div class="output" data-output="camera-1"></div>
+                    <div class="output" data-output="camera-2"></div>
+                </div>
+            </div>
+
+            <!-- VX4 Server 1 -->
+            <div class="equipment server vx4-1">
+                <h3>Disguise VX4 #1</h3>
+                <p>Media Server</p>
+                <div class="outputs">
+                    <div class="output" data-output="vx4-1-1"></div>
+                    <div class="output" data-output="vx4-1-2"></div>
+                    <div class="output" data-output="vx4-1-3"></div>
+                    <div class="output" data-output="vx4-1-4"></div>
+                </div>
+            </div>
+
+            <!-- Nvidia RTX Server -->
+            <div class="equipment nvidia nvidia-rtx">
+                <h3>Nvidia RTX</h3>
+                <p>Media Server</p>
+                <div class="inputs">
+                    <div class="input" data-input="nvidia-in-1"></div>
+                    <div class="input" data-input="nvidia-in-2"></div>
+                </div>
+                <div class="outputs">
+                    <div class="output" data-output="nvidia-1"></div>
+                    <div class="output" data-output="nvidia-2"></div>
+                    <div class="output" data-output="nvidia-3"></div>
+                    <div class="output" data-output="nvidia-4"></div>
+                </div>
+            </div>
+
+            <!-- VX4 Server 2 -->
+            <div class="equipment server vx4-2">
+                <h3>Disguise VX4 #2</h3>
+                <p>Media Server</p>
+                <div class="outputs">
+                    <div class="output" data-output="vx4-2-1"></div>
+                    <div class="output" data-output="vx4-2-2"></div>
+                    <div class="output" data-output="vx4-2-3"></div>
+                    <div class="output" data-output="vx4-2-4"></div>
+                </div>
+            </div>
+
+            <!-- Christie Projector -->
+            <div class="equipment projector">
+                <h3>Christie Griffyn</h3>
+                <p>Projetor 4K50-RGB</p>
+                <div class="inputs">
+                    <div class="input" data-input="proj-1"></div>
+                    <div class="input" data-input="proj-2"></div>
+                    <div class="input" data-input="proj-3"></div>
+                    <div class="input" data-input="proj-4"></div>
+                </div>
+            </div>
+
+            <!-- Megapixel Processor -->
+            <div class="equipment processor megapixel">
+                <h3>Processadora Megapixel</h3>
+                <p>Painel LG 240fps</p>
+                <div class="inputs">
+                    <div class="input" data-input="megapixel-1"></div>
+                </div>
+            </div>
+
+            <!-- Kinoflo Processor -->
+            <div class="equipment processor kinoflo">
+                <h3>Processadora Kinoflo</h3>
+                <p>Iluminação</p>
+                <div class="inputs">
+                    <div class="input" data-input="kinoflo-1"></div>
+                </div>
+            </div>
+
+            <!-- LED Wall Controller 1 -->
+            <div class="equipment led-wall mx40-1">
+                <h3>Novastar MX-40 Pro #1</h3>
+                <p>Volume lado A</p>
+                <div class="inputs">
+                    <div class="input" data-input="mx40-1"></div>
+                </div>
+            </div>
+
+            <!-- LED Wall Controller 2 -->
+            <div class="equipment led-wall mx40-2">
+                <h3>Novastar MX-40 Pro #2</h3>
+                <p>Volume lado B</p>
+                <div class="inputs">
+                    <div class="input" data-input="mx40-2"></div>
+                </div>
+            </div>
+
+            <!-- xR Stage Processor 1 -->
+            <div class="equipment xr-stage xr-1">
+                <h3>Processadora xR #1</h3>
+                <p>Painel LG xR</p>
+                <div class="inputs">
+                    <div class="input" data-input="xr-1"></div>
+                </div>
+            </div>
+
+            <!-- xR Stage Processor 2 -->
+            <div class="equipment xr-stage xr-2">
+                <h3>Processadora xR #2</h3>
+                <p>Piso Leyard xR</p>
+                <div class="inputs">
+                    <div class="input" data-input="xr-2"></div>
+                </div>
+            </div>
+
+            <!-- Connections will be drawn by JavaScript -->
+        </div>
+
+        <div class="legend">
+            <h4>Tipos de Conexão</h4>
+            <div class="legend-item">
+                <div class="legend-color dp-fiber"></div>
+                <span>DP 1.4 Fibra</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color hdmi"></div>
+                <span>HDMI</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color sdi"></div>
+                <span>SDI</span>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="connections-column">
+                <h4>Resumo das Conexões</h4>
+                <ul>
+                    <li>Câmera Red: 2 saídas SDI → Nvidia RTX (2 entradas)</li>
+                    <li>VX4 #1: Todas as 4 saídas DP → Projetor Christie (4 entradas)</li>
+                    <li>Nvidia RTX: Saída 1 → Processadora Megapixel</li>
+                    <li>Nvidia RTX: Saída 2 → Processadora Kinoflo</li>
+                    <li>VX4 #2: Saída HDMI 1 → Novastar MX-40 Pro #1</li>
+                    <li>VX4 #2: Saída HDMI 2 → Novastar MX-40 Pro #2</li>
+                    <li>VX4 #2: Saída DP 1 → Processadora xR #1</li>
+                    <li>VX4 #2: Saída DP 2 → Processadora xR #2</li>
+                </ul>
+            </div>
+            <div class="cables-column">
+                <h4>Lista de Cabos Necessários</h4>
+                <ul>
+                    <li><strong>Cabos SDI:</strong></li>
+                    <li>• 2x cabos SDI (Red → Nvidia RTX)</li>
+                    <li>• 1x cabo SDI backup</li>
+                    <li><strong>Fibras DP 1.4:</strong></li>
+                    <li>• 4x fibras DP 1.4 (VX4 #1 → Christie)</li>
+                    <li>• 2x fibras DP 1.4 (Nvidia RTX → Processadoras)</li>
+                    <li>• 2x fibras DP 1.4 (VX4 #2 → xR)</li>
+                    <li>• 2x fibras DP 1.4 backup</li>
+                    <li><strong>Cabos HDMI:</strong></li>
+                    <li>• 2x cabos HDMI (VX4 #2 → MX-40)</li>
+                    <li>• 1x cabo HDMI backup</li>
+                    <li><strong>Total: 3 SDI + 8 DP + 2 HDMI + 4 backup</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Connection data
+        const connections = [
+            // Red Camera to Nvidia RTX (2 SDI connections)
+            { from: 'camera-1', to: 'nvidia-in-1', type: 'sdi', label: 'SDI' },
+            { from: 'camera-2', to: 'nvidia-in-2', type: 'sdi', label: 'SDI' },
+            
+            // VX4 #1 to Christie Projector (4 DP Fiber connections)
+            { from: 'vx4-1-1', to: 'proj-1', type: 'dp-fiber', label: 'DP 1.4 Fibra' },
+            { from: 'vx4-1-2', to: 'proj-2', type: 'dp-fiber', label: 'DP 1.4 Fibra' },
+            { from: 'vx4-1-3', to: 'proj-3', type: 'dp-fiber', label: 'DP 1.4 Fibra' },
+            { from: 'vx4-1-4', to: 'proj-4', type: 'dp-fiber', label: 'DP 1.4 Fibra' },
+            
+            // Nvidia RTX to Processors (2 outputs used, 2 empty)
+            { from: 'nvidia-1', to: 'megapixel-1', type: 'dp-fiber', label: 'DP 1.4' },
+            { from: 'nvidia-2', to: 'kinoflo-1', type: 'dp-fiber', label: 'DP 1.4' },
+            
+            // VX4 #2 to MX-40 (2 HDMI connections)
+            { from: 'vx4-2-1', to: 'mx40-1', type: 'hdmi', label: 'HDMI' },
+            { from: 'vx4-2-2', to: 'mx40-2', type: 'hdmi', label: 'HDMI' },
+            
+            // VX4 #2 to xR Stage (2 DP connections)
+            { from: 'vx4-2-3', to: 'xr-1', type: 'dp-fiber', label: 'DP 1.4 Fibra' },
+            { from: 'vx4-2-4', to: 'xr-2', type: 'dp-fiber', label: 'DP 1.4 Fibra' }
+        ];
+
+        function drawConnections() {
+            const diagramArea = document.querySelector('.diagram-area');
+            
+            connections.forEach((conn, index) => {
+                const fromElement = document.querySelector(`[data-output="${conn.from}"]`);
+                const toElement = document.querySelector(`[data-input="${conn.to}"]`);
+                
+                if (fromElement && toElement) {
+                    const fromRect = fromElement.getBoundingClientRect();
+                    const toRect = toElement.getBoundingClientRect();
+                    const diagramRect = diagramArea.getBoundingClientRect();
+                    
+                    const fromX = fromRect.left + fromRect.width/2 - diagramRect.left;
+                    const fromY = fromRect.top + fromRect.height/2 - diagramRect.top;
+                    const toX = toRect.left + toRect.width/2 - diagramRect.left;
+                    const toY = toRect.top + toRect.height/2 - diagramRect.top;
+                    
+                    // Create curved path to avoid overlapping
+                    const connection = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    connection.className = `connection ${conn.type}`;
+                    connection.style.position = 'absolute';
+                    connection.style.top = '0';
+                    connection.style.left = '0';
+                    connection.style.width = '100%';
+                    connection.style.height = '100%';
+                    connection.style.pointerEvents = 'none';
+                    connection.style.zIndex = '10';
+                    
+                    // Calculate smooth curved paths with proper spacing
+                    const midX = (fromX + toX) / 2;
+                    let controlX1, controlX2, controlY1, controlY2;
+                    
+                    // Create gentle curves with vertical separation to avoid overlaps
+                    let offsetY;
+                    
+                    if (conn.from.startsWith('camera')) {
+                        // Camera to Nvidia RTX - minimal curve
+                        offsetY = (index % 2 - 0.5) * 15;
+                        controlX1 = fromX + 60;
+                        controlX2 = toX - 60;
+                        controlY1 = fromY + offsetY;
+                        controlY2 = toY + offsetY;
+                    } else if (conn.from.startsWith('nvidia')) {
+                        // Nvidia RTX to processors - gentle arcs
+                        const nvidiaIndex = parseInt(conn.from.split('-')[1]) - 1;
+                        offsetY = (nvidiaIndex - 0.5) * 20;
+                        controlX1 = fromX + 80;
+                        controlX2 = toX - 80;
+                        controlY1 = fromY + offsetY;
+                        controlY2 = toY + offsetY;
+                    } else if (conn.from.startsWith('vx4-1')) {
+                        // VX4 #1 to Christie - parallel smooth curves
+                        const vx4Index = parseInt(conn.from.split('-')[2]) - 1;
+                        offsetY = (vx4Index - 1.5) * 12;
+                        controlX1 = fromX + 70;
+                        controlX2 = toX - 70;
+                        controlY1 = fromY + offsetY;
+                        controlY2 = toY + offsetY;
+                    } else if (conn.from.startsWith('vx4-2')) {
+                        // VX4 #2 connections - wider curves to avoid overlap
+                        const vx4Index = parseInt(conn.from.split('-')[2]) - 1;
+                        offsetY = (vx4Index - 1.5) * 18;
+                        controlX1 = fromX + 90;
+                        controlX2 = toX - 90;
+                        controlY1 = fromY + offsetY;
+                        controlY2 = toY + offsetY;
+                    }
+                    
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const pathData = `M ${fromX} ${fromY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${toX} ${toY}`;
+                    path.setAttribute('d', pathData);
+                    path.setAttribute('stroke', 
+                        conn.type === 'dp-fiber' ? 'url(#dpGradient)' : 
+                        conn.type === 'hdmi' ? 'url(#hdmiGradient)' : 'url(#sdiGradient)');
+                    path.setAttribute('stroke-width', '6');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('stroke-linecap', 'round');
+                    path.style.filter = `drop-shadow(0 0 10px ${
+                        conn.type === 'dp-fiber' ? '#00ff88' : 
+                        conn.type === 'hdmi' ? '#3742fa' : '#e74c3c'})`;
+                    
+                    // Add gradients
+                    if (!document.getElementById('dpGradient')) {
+                        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                        
+                        const dpGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+                        dpGradient.id = 'dpGradient';
+                        const dpStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                        dpStop1.setAttribute('offset', '0%');
+                        dpStop1.setAttribute('stop-color', '#00ff88');
+                        const dpStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                        dpStop2.setAttribute('offset', '100%');
+                        dpStop2.setAttribute('stop-color', '#ff4757');
+                        dpGradient.appendChild(dpStop1);
+                        dpGradient.appendChild(dpStop2);
+                        
+                        const hdmiGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+                        hdmiGradient.id = 'hdmiGradient';
+                        const hdmiStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                        hdmiStop1.setAttribute('offset', '0%');
+                        hdmiStop1.setAttribute('stop-color', '#3742fa');
+                        const hdmiStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                        hdmiStop2.setAttribute('offset', '100%');
+                        hdmiStop2.setAttribute('stop-color', '#ff6348');
+                        hdmiGradient.appendChild(hdmiStop1);
+                        hdmiGradient.appendChild(hdmiStop2);
+                        
+                        const sdiGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+                        sdiGradient.id = 'sdiGradient';
+                        const sdiStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                        sdiStop1.setAttribute('offset', '0%');
+                        sdiStop1.setAttribute('stop-color', '#e74c3c');
+                        const sdiStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                        sdiStop2.setAttribute('offset', '100%');
+                        sdiStop2.setAttribute('stop-color', '#f39c12');
+                        sdiGradient.appendChild(sdiStop1);
+                        sdiGradient.appendChild(sdiStop2);
+                        
+                        defs.appendChild(dpGradient);
+                        defs.appendChild(hdmiGradient);
+                        defs.appendChild(sdiGradient);
+                        connection.appendChild(defs);
+                    }
+                    
+                    connection.appendChild(path);
+                    
+                    // Position labels on top of the curved path
+                    const labelX = (fromX + toX) / 2;
+                    const labelY = (fromY + toY) / 2 + offsetY - 20; // Position above the curve
+                    const label = document.createElement('div');
+                    label.className = 'connection-label';
+                    label.textContent = conn.label;
+                    label.style.position = 'absolute';
+                    label.style.left = labelX + 'px';
+                    label.style.top = labelY + 'px';
+                    label.style.transform = 'translate(-50%, -50%)';
+                    label.style.zIndex = '15';
+                    label.style.pointerEvents = 'auto';
+                    
+                    diagramArea.appendChild(connection);
+                    diagramArea.appendChild(label);
+                    
+                    // Add hover effects
+                    label.addEventListener('mouseenter', () => {
+                        path.setAttribute('stroke-width', '8');
+                        path.style.filter = `drop-shadow(0 0 20px ${conn.type === 'dp-fiber' ? '#00ff88' : '#3742fa'})`;
+                        fromElement.style.transform = 'scale(1.3)';
+                        toElement.style.transform = 'scale(1.3)';
+                        fromElement.style.boxShadow = '0 0 25px #00ff88';
+                        toElement.style.boxShadow = '0 0 25px #ff4757';
+                        label.style.background = 'rgba(0, 212, 255, 0.2)';
+                        label.style.transform = 'translate(-50%, -50%) scale(1.1)';
+                    });
+                    
+                    label.addEventListener('mouseleave', () => {
+                        path.setAttribute('stroke-width', '6');
+                        path.style.filter = `drop-shadow(0 0 10px ${
+                        conn.type === 'dp-fiber' ? '#00ff88' : 
+                        conn.type === 'hdmi' ? '#3742fa' : '#e74c3c'})`;
+                        fromElement.style.transform = 'scale(1)';
+                        toElement.style.transform = 'scale(1)';
+                        fromElement.style.boxShadow = '0 0 15px rgba(0, 255, 136, 0.8), inset 0 1px 0 rgba(255,255,255,0.3)';
+                        toElement.style.boxShadow = '0 0 15px rgba(255, 71, 87, 0.8), inset 0 1px 0 rgba(255,255,255,0.3)';
+                        label.style.background = 'rgba(0,0,0,0.9)';
+                        label.style.transform = 'translate(-50%, -50%) scale(1)';
+                    });
+                    
+                    // Animate connection drawing
+                    setTimeout(() => {
+                        connection.style.opacity = '0.8';
+                        connection.style.animation = 'pulse 2s infinite';
+                    }, index * 200);
+                }
+            });
+        }
+
+        // Draw connections when page loads
+        window.addEventListener('load', drawConnections);
+        window.addEventListener('resize', () => {
+            // Redraw connections on resize
+            document.querySelectorAll('.connection').forEach(conn => conn.remove());
+            document.querySelectorAll('.connection-label').forEach(label => label.remove());
+            drawConnections();
+        });
+
+        // Add click handlers for equipment
+        document.querySelectorAll('.equipment').forEach(equipment => {
+            equipment.addEventListener('click', () => {
+                equipment.style.borderColor = '#00d4ff';
+                equipment.style.boxShadow = '0 0 30px #00d4ff, 0 20px 40px rgba(0,0,0,0.8)';
+                equipment.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    equipment.style.borderColor = equipment.classList.contains('server') ? '#00d4ff' : 
+                                                   equipment.classList.contains('projector') ? '#38ef7d' :
+                                                   equipment.classList.contains('led-wall') ? '#f093fb' : '#ff9a9e';
+                    equipment.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)';
+                    equipment.style.transform = 'scale(1)';
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>
