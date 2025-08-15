@@ -192,11 +192,18 @@ async function patchRecord(id, payload){
 
 function renderGrid(rows){
   grid.innerHTML = '';
+  console.log('renderGrid called with rows:', rows);
+  console.log('Total rows received:', rows.length);
+  
   // count only the still-available (empty inviter) items
   const availableCount = rows.filter(r => {
     const v = r[CONFIG.columns.inviter];
-    return v === undefined || v === null || String(v).trim() === '';
+    const isEmpty = v === undefined || v === null || String(v).trim() === '';
+    console.log('Row:', r[CONFIG.columns.name], 'inviter:', v, 'isEmpty:', isEmpty);
+    return isEmpty;
   }).length;
+  
+  console.log('Available count:', availableCount);
   countPill.textContent = `${availableCount} disponíveis`;
   savePill.style.display = 'none'; errPill.style.display = 'none';
   viewPill.style.display = CONFIG.viewId ? 'inline-block' : 'none';
@@ -342,12 +349,15 @@ async function boot(){
     const seeded = false; // seeding disabled in proxy mode
     const rows = await listRecords();
     console.log('Received rows:', rows);
+    console.log('Sample row structure:', rows[0]);
+    console.log('CONFIG.columns:', CONFIG.columns);
     
     // Show only empty or mine
     const filtered = rows.filter(r => {
       const v = r[CONFIG.columns.inviter];
       const empty = v === undefined || v === null || String(v).trim() === '';
       const mine = CURRENT_INVITER && String(v||'').trim().toLowerCase() === CURRENT_INVITER.trim().toLowerCase();
+      console.log('Filtering row:', r[CONFIG.columns.name], 'inviter value:', v, 'empty:', empty, 'mine:', mine);
       return empty || mine;
     });
     console.log('Filtered rows:', filtered.length);
