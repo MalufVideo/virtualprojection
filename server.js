@@ -626,6 +626,39 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Test produtoras connection
+app.get('/test-produtoras', async (req, res) => {
+    try {
+        const testTableId = 'moxaifq5xp4bl76';
+        console.log('Testing produtoras connection...');
+        console.log('NocoDB URL:', NOCODB_API_URL);
+        console.log('Table ID:', testTableId);
+        console.log('API Token length:', NOCODB_API_TOKEN?.length || 0);
+        
+        const list = await nocoListGeneric(testTableId, { limit: 5 });
+        
+        res.json({
+            success: true,
+            message: 'Produtoras connection working',
+            recordCount: list?.length || 0,
+            sample: list?.[0] || null,
+            config: {
+                nocodb_url: NOCODB_API_URL,
+                table_id: testTableId,
+                has_token: !!NOCODB_API_TOKEN
+            }
+        });
+    } catch (error) {
+        console.error('Test produtoras error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            details: error?.response?.data || null,
+            status: error?.response?.status || null
+        });
+    }
+});
+
 // Debug endpoint to test QR validation
 app.get('/debug-qr/:id', async (req, res) => {
     try {
@@ -716,16 +749,35 @@ app.get('/produtoras/list', async (req, res)=>{
     const { tableId, viewId, limit = 1000, offset = 0, where } = req.query;
     // Use provided tableId or fallback to configured table
     const tbl = (tableId && tableId.trim() !== '') ? tableId : NOCODB_TABLE_ID;
-    console.log('[produtoras/list] params', { tbl, viewId, limit, offset, where });
+    console.log('[produtoras/list] Request params:', { tbl, viewId, limit, offset, where });
+    console.log('[produtoras/list] NocoDB config:', { 
+      baseURL: NOCODB_API_URL, 
+      hasToken: !!NOCODB_API_TOKEN,
+      tokenLength: NOCODB_API_TOKEN?.length || 0
+    });
+    
     const params = { limit, offset };
     if (where) params.where = where;
     if (viewId) params.viewId = viewId;
+    
+    console.log('[produtoras/list] Calling NocoDB with params:', params);
     const list = await nocoListGeneric(tbl, params);
-    console.log('[produtoras/list] returned', Array.isArray(list) ? list.length : 'non-array');
-    res.json({ success:true, list });
+    console.log('[produtoras/list] NocoDB returned:', Array.isArray(list) ? `${list.length} records` : 'non-array', typeof list);
+    
+    res.json({ success: true, list });
   }catch(e){
-    console.error('[produtoras/list] error', e?.response?.data || e.message);
-    res.status(500).json({ success:false, error: e?.response?.data || e.message });
+    console.error('[produtoras/list] ERROR:', {
+      message: e.message,
+      status: e?.response?.status,
+      statusText: e?.response?.statusText,
+      data: e?.response?.data,
+      config: e?.config ? { url: e.config.url, method: e.config.method } : null
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: e?.response?.data || e.message,
+      details: e?.response?.status ? `HTTP ${e.response.status}` : 'Unknown error'
+    });
   }
 });
 
