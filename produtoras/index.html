@@ -51,7 +51,7 @@
     <header>
       <div>
         <h1>Produtoras</h1>
-        <div class="sub">Edição rápida com auto‑salvamento no NocoDB (coluna “quem convida”).</div>
+        <div class="sub">Sistema de seleção de produtoras para convites.</div>
       </div>
       <div class="status"><span class="dot" id="netDot"></span><span id="netText">Pronto</span></div>
     </header>
@@ -64,13 +64,11 @@
           <button id="startBtn">Começar</button>
           <button id="copyLinkBtn" title="Copiar link para o clipboard">Copiar link do Convite</button>
           <span class="pill" id="countPill">0 disponíveis</span>
-          <span class="pill warn" id="viewPill" style="display:none">Usando visão</span>
           <span class="pill ok" id="savePill" style="display:none">Salvo</span>
           <span class="pill err" id="errPill" style="display:none">Erro</span>
         </div>
       </div>
       <div id="chooser" style="padding:12px; display:none">
-        <div class="muted" style="margin-bottom:8px">Selecione as produtoras. Cada clique registra sua escolha e remove a produtora da lista para os próximos.</div>
         <div id="grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:10px"></div>
       </div>
       <div id="gate" style="padding:20px; text-align:center; color:var(--muted)">Digite seu nome acima e clique em "Começar" para ver as produtoras disponíveis.</div>

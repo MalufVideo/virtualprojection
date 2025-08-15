@@ -32,7 +32,6 @@ const DATASET = [
   ['Caferoyal','www.caferoyal.art.br','2019-04-10'],
   ['Canja','www.canja.audio','2025-08-06'],
   ['Capuri','capuri.tv','2020-08-31'],
-  ['Casablancafx','casablancafx.com.br','2004-01-01'],
   ['Cave','www.cave.tv.br','2020-08-07'],
   ['Cine','www.cine.com.br','1995-01-01'],
   ['Conspira','www.conspira.com.br','1990-01-01'],
@@ -41,7 +40,6 @@ const DATASET = [
   ['Corazon','www.corazon.tv.br','2022-02-03'],
   ['Cremecompany','cremecompany.tv','2024-07-01'],
   ['Czar','czar.com','2023-10-02'],
-  ['Digital21','www.digital21.com.br','2002-10-01'],
   ['Dahouseaudio','dahouseaudio.com.br','2019-08-05'],
   ['Damascofilmes','damascofilmes.com','2020-06-17'],
   ['Dlktsn','dlktsn.com.br','2016-12-01'],
@@ -52,7 +50,6 @@ const DATASET = [
   ['Fishprodutora','www.fishprodutora.com.br','2023-09-29'],
   ['Gullane','www.gullane.com.br','2017-05-17'],
   ['Saigon','www.saigon.com.br','2022-04-22'],
-  ['Vimeo','vimeo.com','2024-07-15'],
   ['Hungryman','hungryman.com','2009-07-01'],
   ['Iconoclast','www.iconoclast.tv','2016-12-13'],
   ['Immigrant','www.immigrant.studio','2022-05-18'],
@@ -117,7 +114,6 @@ const seedBtn = document.getElementById('seedBtn');
 const countPill = document.getElementById('countPill');
 const savePill = document.getElementById('savePill');
 const errPill = document.getElementById('errPill');
-const viewPill = document.getElementById('viewPill');
 const netDot = document.getElementById('netDot');
 const netText = document.getElementById('netText');
 const inviterInput = document.getElementById('inviterInput');
@@ -206,7 +202,6 @@ function renderGrid(rows){
   console.log('Available count:', availableCount);
   countPill.textContent = `${availableCount} disponíveis`;
   savePill.style.display = 'none'; errPill.style.display = 'none';
-  viewPill.style.display = CONFIG.viewId ? 'inline-block' : 'none';
 
   for(const row of rows){
     const id = row.Id || row.id || row.__id || row.ncRecordId;
