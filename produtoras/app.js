@@ -141,13 +141,28 @@ function apiLocal(path, opts={}){
 }
 
 async function listRecords(){
-  const params = new URLSearchParams({ limit: '1000', offset: '0' });
-  if (CONFIG.tableId) params.set('tableId', CONFIG.tableId);
-  const res = await apiLocal(`/produtoras/list?${params}`);
-  if (Array.isArray(res)) return res;
-  if (res && Array.isArray(res.list)) return res.list;
-  console.warn('Unexpected list response shape:', res);
-  return [];
+  try {
+    const params = new URLSearchParams({ 
+      limit: '1000', 
+      offset: '0',
+      tableId: CONFIG.tableId
+    });
+    if (CONFIG.viewId) params.set('viewId', CONFIG.viewId);
+    
+    console.log('Calling API:', `/produtoras/list?${params}`);
+    const res = await apiLocal(`/produtoras/list?${params}`);
+    console.log('API Response:', res);
+    
+    if (Array.isArray(res)) return res;
+    if (res && Array.isArray(res.list)) return res.list;
+    if (res && res.success && Array.isArray(res.list)) return res.list;
+    
+    console.warn('Unexpected list response shape:', res);
+    return [];
+  } catch (error) {
+    console.error('Error in listRecords:', error);
+    throw error;
+  }
 }
 
 async function createMany(payload){
@@ -310,8 +325,13 @@ async function seedIfEmpty(){
 async function boot(){
   try{
     setNet('sync','Carregando…');
+    console.log('Starting boot process...');
+    console.log('CONFIG:', CONFIG);
+    
     const seeded = false; // seeding disabled in proxy mode
     const rows = await listRecords();
+    console.log('Received rows:', rows);
+    
     // Show only empty or mine
     const filtered = rows.filter(r => {
       const v = r[CONFIG.columns.inviter];
@@ -319,12 +339,20 @@ async function boot(){
       const mine = CURRENT_INVITER && String(v||'').trim().toLowerCase() === CURRENT_INVITER.trim().toLowerCase();
       return empty || mine;
     });
+    console.log('Filtered rows:', filtered.length);
+    
     renderGrid(filtered);
     setNet('', seeded ? 'Dados criados e carregados' : 'Carregado');
   }catch(err){
-    console.error(err);
+    console.error('Boot error:', err);
+    console.error('Error details:', {
+      message: err.message,
+      status: err.status,
+      stack: err.stack
+    });
     setNet('err','Falha ao carregar');
     errPill.style.display = 'inline-block';
+    errPill.textContent = `Erro: ${err.message}`;
   }
 }
 
