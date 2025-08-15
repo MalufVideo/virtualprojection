@@ -2,8 +2,9 @@
 
 const CONFIG = {
   apiBase: '', // same-origin
+  // Explicit table for produtoras (server still supports default if omitted)
   tableId: 'moxaifq5xp4bl76',
-  viewId: 'vw6ib2i5pt04m4io',
+  viewId: '',
   // Column mapping (adjust to your NocoDB columns)
   columns: {
     name: 'Produtora',
@@ -140,7 +141,7 @@ function apiLocal(path, opts={}){
 }
 
 async function listRecords(){
-  const q = new URLSearchParams({ tableId: CONFIG.tableId, viewId: CONFIG.viewId, limit: '1000', offset: '0' }).toString();
+  const q = new URLSearchParams({ tableId: CONFIG.tableId, limit: '1000', offset: '0' }).toString();
   const res = await apiLocal(`/produtoras/list?${q}`);
   if (Array.isArray(res)) return res;
   if (res && Array.isArray(res.list)) return res.list;
