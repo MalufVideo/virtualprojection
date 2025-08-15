@@ -142,7 +142,10 @@ function apiLocal(path, opts={}){
 async function listRecords(){
   const q = new URLSearchParams({ tableId: CONFIG.tableId, viewId: CONFIG.viewId, limit: '1000', offset: '0' }).toString();
   const res = await apiLocal(`/produtoras/list?${q}`);
-  return Array.isArray(res) ? res : (res.list || res.list === undefined ? (res.list || res.list) : res.list) || res.list || res.list === 0 ? [] : (res.list || []);
+  if (Array.isArray(res)) return res;
+  if (res && Array.isArray(res.list)) return res.list;
+  console.warn('Unexpected list response shape:', res);
+  return [];
 }
 
 async function createMany(payload){
