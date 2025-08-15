@@ -714,13 +714,17 @@ async function nocoPatchGeneric(tableId, id, payload){
 app.get('/produtoras/list', async (req, res)=>{
   try{
     const { tableId, viewId, limit = 1000, offset = 0, where } = req.query;
-    if(!tableId) return res.status(400).json({ success:false, error:'Missing tableId' });
+    // Use provided tableId or fallback to configured table
+    const tbl = (tableId && tableId.trim() !== '') ? tableId : NOCODB_TABLE_ID;
+    console.log('[produtoras/list] params', { tbl, viewId, limit, offset, where });
     const params = { limit, offset };
     if (where) params.where = where;
     if (viewId) params.viewId = viewId;
-    const list = await nocoListGeneric(tableId, params);
+    const list = await nocoListGeneric(tbl, params);
+    console.log('[produtoras/list] returned', Array.isArray(list) ? list.length : 'non-array');
     res.json({ success:true, list });
   }catch(e){
+    console.error('[produtoras/list] error', e?.response?.data || e.message);
     res.status(500).json({ success:false, error: e?.response?.data || e.message });
   }
 });
@@ -729,10 +733,12 @@ app.get('/produtoras/list', async (req, res)=>{
 app.get('/produtoras/:id', async (req, res)=>{
   try{
     const { tableId } = req.query; const { id } = req.params;
-    if(!tableId) return res.status(400).json({ success:false, error:'Missing tableId' });
-    const rec = await nocoGetGeneric(tableId, id);
+    const tbl = (tableId && tableId.trim() !== '') ? tableId : NOCODB_TABLE_ID;
+    console.log('[produtoras/get] params', { tbl, id });
+    const rec = await nocoGetGeneric(tbl, id);
     res.json(rec);
   }catch(e){
+    console.error('[produtoras/get] error', e?.response?.data || e.message);
     res.status(500).json({ success:false, error: e?.response?.data || e.message });
   }
 });
@@ -741,12 +747,57 @@ app.get('/produtoras/:id', async (req, res)=>{
 app.patch('/produtoras/:id', async (req, res)=>{
   try{
     const { tableId } = req.query; const { id } = req.params;
-    if(!tableId) return res.status(400).json({ success:false, error:'Missing tableId' });
-    const result = await nocoPatchGeneric(tableId, id, req.body || {});
+    const tbl = (tableId && tableId.trim() !== '') ? tableId : NOCODB_TABLE_ID;
+    console.log('[produtoras/patch] params', { tbl, id, body: req.body });
+    const result = await nocoPatchGeneric(tbl, id, req.body || {});
     res.json(result);
   }catch(e){
+    console.error('[produtoras/patch] error', e?.response?.data || e.message);
     res.status(500).json({ success:false, error: e?.response?.data || e.message });
   }
 });
 
+// ---- Same endpoints under /api/produtoras to avoid collision with static folder ----
+app.get('/api/produtoras/list', async (req, res)=>{
+  try{
+    const { tableId, viewId, limit = 1000, offset = 0, where } = req.query;
+    const tbl = (tableId && tableId.trim() !== '') ? tableId : NOCODB_TABLE_ID;
+    console.log('[api/produtoras/list] params', { tbl, viewId, limit, offset, where });
+    const params = { limit, offset };
+    if (where) params.where = where;
+    if (viewId) params.viewId = viewId;
+    const list = await nocoListGeneric(tbl, params);
+    console.log('[api/produtoras/list] returned', Array.isArray(list) ? list.length : 'non-array');
+    res.json({ success:true, list });
+  }catch(e){
+    console.error('[api/produtoras/list] error', e?.response?.data || e.message);
+    res.status(500).json({ success:false, error: e?.response?.data || e.message });
+  }
+});
+
+app.get('/api/produtoras/:id', async (req, res)=>{
+  try{
+    const { tableId } = req.query; const { id } = req.params;
+    const tbl = (tableId && tableId.trim() !== '') ? tableId : NOCODB_TABLE_ID;
+    console.log('[api/produtoras/get] params', { tbl, id });
+    const rec = await nocoGetGeneric(tbl, id);
+    res.json(rec);
+  }catch(e){
+    console.error('[api/produtoras/get] error', e?.response?.data || e.message);
+    res.status(500).json({ success:false, error: e?.response?.data || e.message });
+  }
+});
+
+app.patch('/api/produtoras/:id', async (req, res)=>{
+  try{
+    const { tableId } = req.query; const { id } = req.params;
+    const tbl = (tableId && tableId.trim() !== '') ? tableId : NOCODB_TABLE_ID;
+    console.log('[api/produtoras/patch] params', { tbl, id, body: req.body });
+    const result = await nocoPatchGeneric(tbl, id, req.body || {});
+    res.json(result);
+  }catch(e){
+    console.error('[api/produtoras/patch] error', e?.response?.data || e.message);
+    res.status(500).json({ success:false, error: e?.response?.data || e.message });
+  }
+});
 module.exports = app;
