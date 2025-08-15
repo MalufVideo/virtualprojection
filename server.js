@@ -732,14 +732,20 @@ async function nocoGetGeneric(tableId, id){
 
 async function nocoPatchGeneric(tableId, id, payload){
   try{
-    const { data } = await noco.patch(`/tables/${tableId}/records/${id}`, payload);
-    return data;
+    console.log('[nocoPatchGeneric] Updating table:', tableId, 'id:', id, 'payload:', payload);
+    
+    // NocoDB PATCH expects array of objects with Id included
+    const updatePayload = [{ Id: parseInt(id), ...payload }];
+    console.log('[nocoPatchGeneric] Sending update payload:', updatePayload);
+    
+    const { data } = await noco.patch(`/tables/${tableId}/records`, updatePayload);
+    console.log('[nocoPatchGeneric] PATCH success:', data);
+    
+    // Return the first updated record or the response
+    return Array.isArray(data) ? data[0] : data;
   }catch(err){
-    // Fallback: POST with override
-    const { data } = await noco.post(`/tables/${tableId}/records/${id}`, payload, {
-      headers: { 'X-HTTP-Method-Override': 'PATCH' }
-    });
-    return data;
+    console.error('[nocoPatchGeneric] PATCH failed:', err?.response?.data || err.message);
+    throw err;
   }
 }
 
