@@ -114,6 +114,7 @@ const seedBtn = document.getElementById('seedBtn');
 const countPill = document.getElementById('countPill');
 const savePill = document.getElementById('savePill');
 const errPill = document.getElementById('errPill');
+const viewPill = document.getElementById('viewPill');
 const netDot = document.getElementById('netDot');
 const netText = document.getElementById('netText');
 const inviterInput = document.getElementById('inviterInput');
@@ -202,6 +203,7 @@ function renderGrid(rows){
   console.log('Available count:', availableCount);
   countPill.textContent = `${availableCount} disponíveis`;
   savePill.style.display = 'none'; errPill.style.display = 'none';
+  if (viewPill) viewPill.style.display = 'none';
 
   for(const row of rows){
     const id = row.Id || row.id || row.__id || row.ncRecordId;
