@@ -2,9 +2,9 @@
 
 const CONFIG = {
   apiBase: '', // same-origin
-  // Explicit table for produtoras (server still supports default if omitted)
+  // Correct table ID for produtoras
   tableId: 'moxaifq5xp4bl76',
-  viewId: '',
+  viewId: 'vw6ib2i5pt04m4io',
   // Column mapping (adjust to your NocoDB columns)
   columns: {
     name: 'Produtora',
@@ -141,8 +141,9 @@ function apiLocal(path, opts={}){
 }
 
 async function listRecords(){
-  const q = new URLSearchParams({ tableId: CONFIG.tableId, limit: '1000', offset: '0' }).toString();
-  const res = await apiLocal(`/produtoras/list?${q}`);
+  const params = new URLSearchParams({ limit: '1000', offset: '0' });
+  if (CONFIG.tableId) params.set('tableId', CONFIG.tableId);
+  const res = await apiLocal(`/produtoras/list?${params}`);
   if (Array.isArray(res)) return res;
   if (res && Array.isArray(res.list)) return res.list;
   console.warn('Unexpected list response shape:', res);
@@ -156,7 +157,11 @@ async function createMany(payload){
 
 async function patchRecord(id, payload){
   const body = JSON.stringify(payload);
-  return apiLocal(`/produtoras/${id}?tableId=${CONFIG.tableId}`, { method:'PATCH', body });
+  const params = new URLSearchParams();
+  if (CONFIG.tableId) params.set('tableId', CONFIG.tableId);
+  const queryString = params.toString();
+  const url = `/produtoras/${id}${queryString ? '?' + queryString : ''}`;
+  return apiLocal(url, { method:'PATCH', body });
 }
 
 function renderGrid(rows){
@@ -214,7 +219,11 @@ function renderGrid(rows){
       btn.disabled = true;
       try{
         // 1) Fetch current to avoid overwriting someone else concurrently
-            const rec = await apiLocal(`/produtoras/${id}?tableId=${CONFIG.tableId}`);
+        const params = new URLSearchParams();
+        if (CONFIG.tableId) params.set('tableId', CONFIG.tableId);
+        const queryString = params.toString();
+        const url = `/produtoras/${id}${queryString ? '?' + queryString : ''}`;
+        const rec = await apiLocal(url);
         const currentInviter = rec[CONFIG.columns.inviter];
         const takenBySomeoneElse = currentInviter && String(currentInviter).trim() !== '' && String(currentInviter).trim().toLowerCase() !== CURRENT_INVITER.trim().toLowerCase();
         if (takenBySomeoneElse){
