@@ -386,6 +386,30 @@ startBtn.addEventListener('click', async ()=>{
   await boot();
 });
 
+// Test API connection immediately on page load
+window.addEventListener('DOMContentLoaded', async () => {
+  console.log('Testing API connection...');
+  try {
+    const testUrl = '/api/produtoras/list?tableId=moxaifq5xp4bl76&limit=1';
+    console.log('Testing URL:', testUrl);
+    const response = await fetch(testUrl);
+    console.log('Test response status:', response.status);
+    const data = await response.json();
+    console.log('Test response data:', data);
+    
+    if (data.success && data.list) {
+      console.log('✅ API connection working! Found', data.list.length, 'records');
+      setNet('ok', 'API conectado');
+    } else {
+      console.log('❌ API returned unexpected format:', data);
+      setNet('err', 'Formato inesperado');
+    }
+  } catch (error) {
+    console.error('❌ API test failed:', error);
+    setNet('err', 'API falhou');
+  }
+});
+
 inviterInput.addEventListener('keydown', (e)=>{
   if(e.key === 'Enter') startBtn.click();
 });
