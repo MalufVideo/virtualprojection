@@ -134,10 +134,21 @@ function setNet(status, text){
 }
 
 function apiLocal(path, opts={}){
-  return fetch(`${CONFIG.apiBase}${path}`, {
+  // Ensure we use the same origin for API calls
+  const url = path.startsWith('/') ? path : `/${path}`;
+  console.log('Making API call to:', url);
+  return fetch(url, {
     headers: { 'Content-Type': 'application/json' },
     ...opts,
-  }).then(async r=>{ if(!r.ok) throw new Error(await r.text()); return r.json(); });
+  }).then(async r=>{ 
+    console.log('API Response status:', r.status, r.statusText);
+    if(!r.ok) {
+      const errorText = await r.text();
+      console.error('API Error:', errorText);
+      throw new Error(errorText);
+    }
+    return r.json(); 
+  });
 }
 
 async function listRecords(){
@@ -149,8 +160,8 @@ async function listRecords(){
     });
     if (CONFIG.viewId) params.set('viewId', CONFIG.viewId);
     
-    console.log('Calling API:', `/produtoras/list?${params}`);
-    const res = await apiLocal(`/produtoras/list?${params}`);
+    console.log('Calling API:', `/api/produtoras/list?${params}`);
+    const res = await apiLocal(`/api/produtoras/list?${params}`);
     console.log('API Response:', res);
     
     if (Array.isArray(res)) return res;
@@ -175,7 +186,7 @@ async function patchRecord(id, payload){
   const params = new URLSearchParams();
   if (CONFIG.tableId) params.set('tableId', CONFIG.tableId);
   const queryString = params.toString();
-  const url = `/produtoras/${id}${queryString ? '?' + queryString : ''}`;
+  const url = `/api/produtoras/${id}${queryString ? '?' + queryString : ''}`;
   return apiLocal(url, { method:'PATCH', body });
 }
 
@@ -237,7 +248,7 @@ function renderGrid(rows){
         const params = new URLSearchParams();
         if (CONFIG.tableId) params.set('tableId', CONFIG.tableId);
         const queryString = params.toString();
-        const url = `/produtoras/${id}${queryString ? '?' + queryString : ''}`;
+        const url = `/api/produtoras/${id}${queryString ? '?' + queryString : ''}`;
         const rec = await apiLocal(url);
         const currentInviter = rec[CONFIG.columns.inviter];
         const takenBySomeoneElse = currentInviter && String(currentInviter).trim() !== '' && String(currentInviter).trim().toLowerCase() !== CURRENT_INVITER.trim().toLowerCase();
