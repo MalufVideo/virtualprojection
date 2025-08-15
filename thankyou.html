@@ -157,7 +157,7 @@
                 
                 <!-- Uber Button -->
                 <div class="text-center">
-                    <a href="https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=R.%20Pl%C3%A1cido%20Vieira,%2043%20-%20Santo%20Amaro,%20S%C3%A3o%20Paulo%20-%20SP,%20Brazil&dropoff[latitude]=-23.648148164787795&dropoff[longitude]=-46.71483062391177" 
+                    <a href="https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[nickname]=On+Proje%C3%A7%C3%B5es&dropoff[latitude]=-23.648191365049588&dropoff[longitude]=-46.712223587902464&dropoff[formatted_address]=Rua+Pl%C3%A1cido+Vieira+43+Santo+Amaro+S%C3%A3o+Paulo+SP" 
                        target="_blank"
                        class="inline-flex items-center px-8 py-4 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors duration-300 text-lg">
                         <svg class="w-6 h-6 mr-3" viewBox="0 0 24 24" fill="currentColor">
@@ -257,10 +257,6 @@
                 qrWrapper.className = 'flex flex-col items-center';
                 qrWrapper.appendChild(canvas);
                 
-                const idMsg = document.createElement('p');
-                idMsg.className = 'text-xs text-gray-400 mt-2 font-mono';
-                idMsg.textContent = `ID: ${attendeeId}`;
-                qrWrapper.appendChild(idMsg);
                 
                 const statusMsg = document.createElement('p');
                 statusMsg.className = 'text-xs text-blue-400 mt-1';
@@ -344,10 +340,6 @@
                     
                     qrContainer.innerHTML = '';
                     qrContainer.appendChild(canvas);
-                    const idMsg = document.createElement('p');
-                    idMsg.className = 'text-xs text-gray-400 mt-2 font-mono';
-                    idMsg.textContent = `ID: ${qrInfo.id}`;
-                    qrContainer.appendChild(idMsg);
                     const successMsg = document.createElement('p');
                     successMsg.className = 'text-xs text-green-400 mt-1';
                     successMsg.textContent = '✓ QR Code existente';
@@ -381,11 +373,6 @@
                     console.log('QR generated successfully with QRious');
                     qrContainer.innerHTML = '';
                     qrContainer.appendChild(canvas);
-                    
-                    const idMsg = document.createElement('p');
-                    idMsg.className = 'text-xs text-gray-400 mt-2 font-mono';
-                    idMsg.textContent = `ID: ${uniqueId}`;
-                    qrContainer.appendChild(idMsg);
                     
                     const successMsg = document.createElement('p');
                     successMsg.className = 'text-xs text-green-400 mt-1';

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Produtoras - Auto Save</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0b0c; --card:#121316; --muted:#82838a; --fg:#f1f5f9; --brand:#7c3aed; --ok:#16a34a; --warn:#f59e0b; --err:#ef4444;
+      --border:#23252b; --hover:#1a1c21;
+    }
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{ margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji"; background:var(--bg); color:var(--fg) }
+    .wrap{ max-width:1200px; margin:24px auto; padding:0 16px }
+    header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px }
+    h1{ font-size:20px; margin:0; font-weight:600 }
+    .sub{ color:var(--muted); font-size:12px }
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden }
+    .toolbar{ display:flex; align-items:center; gap:8px; padding:12px; border-bottom:1px solid var(--border); background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent) }
+    button, .pill{ background:#1b1e24; border:1px solid var(--border); color:var(--fg); border-radius:8px; padding:8px 12px; font-weight:600; cursor:pointer }
+    button:hover{ background:var(--hover) }
+    .pill{ font-size:12px; font-weight:500 }
+    .pill.ok{ border-color:rgba(22,163,74,.35); color:#bbf7d0 }
+    .pill.err{ border-color:rgba(239,68,68,.35); color:#fecaca }
+    .pill.warn{ border-color:rgba(245,158,11,.35); color:#fde68a }
+
+    table{ width:100%; border-collapse:separate; border-spacing:0 }
+    thead th{ position:sticky; top:0; background:var(--card); z-index:1; text-align:left; font-size:12px; color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--border) }
+    tbody td{ padding:12px; border-bottom:1px solid var(--border); font-size:14px }
+    tbody tr:hover{ background:var(--hover) }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; color:#a3a3a3 }
+    .muted{ color:var(--muted) }
+    input[type="text"]{ width:100%; padding:8px 10px; background:#0f1115; color:var(--fg); border:1px solid var(--border); border-radius:8px; outline:none; transition: border-color .15s ease }
+    input[type="text"]:focus{ border-color:var(--brand) }
+    .status{ display:flex; align-items:center; gap:6px; font-size:12px }
+    .dot{ width:8px; height:8px; border-radius:999px; background:var(--muted) }
+    .dot.sync{ background:var(--brand) }
+    .dot.ok{ background:var(--ok) }
+    .dot.err{ background:var(--err) }
+    .table-wrap{ max-height:70vh; overflow:auto }
+    .help{ margin-top:8px; color:var(--muted); font-size:12px }
+    a{ color:#93c5fd; text-decoration:none }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Produtoras</h1>
+        <div class="sub">Edição rápida com auto‑salvamento no NocoDB (coluna “quem convida”).</div>
+      </div>
+      <div class="status"><span class="dot" id="netDot"></span><span id="netText">Pronto</span></div>
+    </header>
+
+    <div class="card">
+      <div class="toolbar">
+        <div style="display:flex; gap:8px; align-items:center; width:100%; flex-wrap:wrap">
+          <label class="muted" for="inviterInput">Seu nome (quem convida)</label>
+          <input id="inviterInput" type="text" placeholder="Digite seu nome para começar" style="min-width:260px; flex:1 1 260px" />
+          <button id="startBtn">Começar</button>
+          <button id="copyLinkBtn" title="Copiar link para o clipboard">Copiar link do Convite</button>
+          <span class="pill" id="countPill">0 disponíveis</span>
+          <span class="pill warn" id="viewPill" style="display:none">Usando visão</span>
+          <span class="pill ok" id="savePill" style="display:none">Salvo</span>
+          <span class="pill err" id="errPill" style="display:none">Erro</span>
+        </div>
+      </div>
+      <div id="chooser" style="padding:12px; display:none">
+        <div class="muted" style="margin-bottom:8px">Selecione as produtoras. Cada clique registra sua escolha e remove a produtora da lista para os próximos.</div>
+        <div id="grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:10px"></div>
+      </div>
+      <div id="gate" style="padding:20px; text-align:center; color:var(--muted)">Digite seu nome acima e clique em "Começar" para ver as produtoras disponíveis.</div>
+    </div>
+
+    
+  </div>
+
+  <script src="./app.js" type="module"></script>
+</body>
+</html>

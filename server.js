@@ -683,4 +683,70 @@ app.listen(PORT, () => {
     console.log(`🔗 Test health check: http://localhost:${PORT}/health`);
 });
 
+// ---- Produtoras minimal proxy (non-breaking) ----
+// These endpoints expose a thin server-side proxy to NocoDB using the existing
+// server-side token from env. They are additive and do not affect current routes.
+
+async function nocoListGeneric(tableId, params = {}){
+  const { data } = await noco.get(`/tables/${tableId}/records`, { params });
+  return Array.isArray(data) ? data : (data.list || []);
+}
+
+async function nocoGetGeneric(tableId, id){
+  const { data } = await noco.get(`/tables/${tableId}/records/${id}`);
+  return data;
+}
+
+async function nocoPatchGeneric(tableId, id, payload){
+  try{
+    const { data } = await noco.patch(`/tables/${tableId}/records/${id}`, payload);
+    return data;
+  }catch(err){
+    // Fallback: POST with override
+    const { data } = await noco.post(`/tables/${tableId}/records/${id}`, payload, {
+      headers: { 'X-HTTP-Method-Override': 'PATCH' }
+    });
+    return data;
+  }
+}
+
+// List records (optional viewId passthrough for future use)
+app.get('/produtoras/list', async (req, res)=>{
+  try{
+    const { tableId, viewId, limit = 1000, offset = 0, where } = req.query;
+    if(!tableId) return res.status(400).json({ success:false, error:'Missing tableId' });
+    const params = { limit, offset };
+    if (where) params.where = where;
+    if (viewId) params.viewId = viewId;
+    const list = await nocoListGeneric(tableId, params);
+    res.json({ success:true, list });
+  }catch(e){
+    res.status(500).json({ success:false, error: e?.response?.data || e.message });
+  }
+});
+
+// Get single record
+app.get('/produtoras/:id', async (req, res)=>{
+  try{
+    const { tableId } = req.query; const { id } = req.params;
+    if(!tableId) return res.status(400).json({ success:false, error:'Missing tableId' });
+    const rec = await nocoGetGeneric(tableId, id);
+    res.json(rec);
+  }catch(e){
+    res.status(500).json({ success:false, error: e?.response?.data || e.message });
+  }
+});
+
+// Patch record
+app.patch('/produtoras/:id', async (req, res)=>{
+  try{
+    const { tableId } = req.query; const { id } = req.params;
+    if(!tableId) return res.status(400).json({ success:false, error:'Missing tableId' });
+    const result = await nocoPatchGeneric(tableId, id, req.body || {});
+    res.json(result);
+  }catch(e){
+    res.status(500).json({ success:false, error: e?.response?.data || e.message });
+  }
+});
+
 module.exports = app;
